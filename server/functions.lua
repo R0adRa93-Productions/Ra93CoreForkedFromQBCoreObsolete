@@ -204,6 +204,7 @@ function PaycheckInterval()
     if next(QBCore.Players) then
         for _, Player in pairs(QBCore.Players) do
             if Player then
+                QBCore.Debug(QBShared.Jobs)
                 local payment = QBShared.Jobs[Player.PlayerData.job.name]['grades'][tostring(Player.PlayerData.job.grade.level)].payment
                 if not payment then payment = Player.PlayerData.job.payment end
                 if Player.PlayerData.job and payment > 0 and (QBShared.Jobs[Player.PlayerData.job.name].offDutyPay or Player.PlayerData.job.onduty) then

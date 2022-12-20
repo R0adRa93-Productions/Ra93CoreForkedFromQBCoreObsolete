@@ -13,6 +13,7 @@ function QBCore.Player.Login(source, citizenid, newData)
             if PlayerData and license == PlayerData.license then
                 PlayerData.money = json.decode(PlayerData.money)
                 PlayerData.job = json.decode(PlayerData.job)
+                PlayerData.jobs = json.decode(PlayerData.jobs)
                 PlayerData.position = json.decode(PlayerData.position)
                 PlayerData.metadata = json.decode(PlayerData.metadata)
                 PlayerData.charinfo = json.decode(PlayerData.charinfo)
@@ -42,6 +43,7 @@ function QBCore.Player.GetOfflinePlayer(citizenid)
         if PlayerData then
             PlayerData.money = json.decode(PlayerData.money)
             PlayerData.job = json.decode(PlayerData.job)
+            PlayerData.jobs = json.decode(PlayerData.jobs)
             PlayerData.position = json.decode(PlayerData.position)
             PlayerData.metadata = json.decode(PlayerData.metadata)
             PlayerData.charinfo = json.decode(PlayerData.charinfo)
@@ -139,7 +141,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job = PlayerData.job or {}
     PlayerData.job.name = PlayerData.job.name or 'unemployed'
     PlayerData.job.label = PlayerData.job.label or 'Civilian'
-    PlayerData.job.payment = PlayerData.job.payment or 10
+    PlayerData.job.payment = PlayerData.job.payment or QBCore.Shared.Jobs["unemployed"]['0'].payment
     PlayerData.job.type = PlayerData.job.type or 'none'
     if QBCore.Shared.ForceJobDefaultDutyAtLogin or PlayerData.job.onduty == nil then
         PlayerData.job.onduty = QBCore.Shared.Jobs[PlayerData.job.name].defaultDuty
@@ -157,6 +159,28 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.gang.grade = PlayerData.gang.grade or {}
     PlayerData.gang.grade.name = PlayerData.gang.grade.name or 'none'
     PlayerData.gang.grade.level = PlayerData.gang.grade.level or 0
+    -- Jobs
+    if PlayerData.jobs then
+        for k,v in pairs(PlayerData.jobs) do
+            if not QBCore.Shared.Jobs[k] then
+                PlayerData.jobs = nil
+                break
+            end
+            PlayerData.jobs[k] = v or {}
+            PlayerData.jobs[k].name = v.name or 'unemployed'
+            PlayerData.jobs[k].label = v.label or 'Civilian'
+            PlayerData.jobs[k].payment = v.payment or QBCore.Shared.Jobs["unemployed"]['0'].payment
+            PlayerData.jobs[k].type = v.type or 'none'
+            if QBCore.Shared.ForceJobDefaultDutyAtLogin or v.onduty == nil then
+                PlayerData.jobs[k].onduty = QBCore.Shared.Jobs[k].defaultDuty
+            end
+            PlayerData.jobs[k].isboss = PlayerData.job.isboss or false
+            PlayerData.jobs[k].grade = PlayerData.job.grade or {}
+            PlayerData.jobs[k].grade.name = PlayerData.job.grade.name or 'Freelancer'
+            PlayerData.jobs[k].grade.level = PlayerData.job.grade.level or 0
+
+        end
+    end
     -- Other
     PlayerData.position = PlayerData.position or QBConfig.DefaultSpawn
     PlayerData.items = GetResourceState('qb-inventory') ~= 'missing' and exports['qb-inventory']:LoadInventory(PlayerData.source, PlayerData.citizenid) or {}
@@ -193,6 +217,11 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline)
         job = job:lower()
         grade = tostring(grade) or '0'
         if not QBCore.Shared.Jobs[job] then return false end
+        if job and job ~= "unemployed" then
+            self.PlayerData.jobs[job] = nil
+            self.PlayerData.jobs[job] = {}
+            self.PlayerData.jobs[job] = self.PlayerData.job
+        end
         self.PlayerData.job.name = job
         self.PlayerData.job.label = QBCore.Shared.Jobs[job].label
         self.PlayerData.job.onduty = QBCore.Shared.Jobs[job].defaultDuty
@@ -485,6 +514,7 @@ function QBCore.Player.Save(source)
             money = json.encode(PlayerData.money),
             charinfo = json.encode(PlayerData.charinfo),
             job = json.encode(PlayerData.job),
+            jobs = json.encode(PlayerData.jobs),
             gang = json.encode(PlayerData.gang),
             position = json.encode(pcoords),
             metadata = json.encode(PlayerData.metadata)
@@ -506,6 +536,7 @@ function QBCore.Player.SaveOffline(PlayerData)
             money = json.encode(PlayerData.money),
             charinfo = json.encode(PlayerData.charinfo),
             job = json.encode(PlayerData.job),
+            jobs = json.encode(PlayerData.jobs),
             gang = json.encode(PlayerData.gang),
             position = json.encode(PlayerData.position),
             metadata = json.encode(PlayerData.metadata)
