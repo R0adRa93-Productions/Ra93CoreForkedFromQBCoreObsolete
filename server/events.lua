@@ -41,6 +41,10 @@ local function onPlayerConnecting(name, _, deferrals)
         end
     end
 
+    if GetConvarInt("sv_fxdkMode", false) then
+        license = 'license:AAAAAAAAAAAAAAAA' -- Dummy License
+    end
+
     if not license then
         deferrals.done(Lang:t('error.no_valid_license'))
     elseif QBCore.Config.Server.CheckDuplicateLicense and QBCore.Functions.IsLicenseInUse(license) then
@@ -194,25 +198,23 @@ end)
 -- BaseEvents
 
 -- Vehicles
-RegisterServerEvent('baseevents:enteringVehicle', function(veh,seat,modelName,netid)
+RegisterServerEvent('baseevents:enteringVehicle', function(veh,seat,modelName)
     local src = source
     local data = {
         vehicle = veh,
         seat = seat,
         name = modelName,
-        netid = netid,
         event = 'Entering'
     }
     TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
 end)
 
-RegisterServerEvent('baseevents:enteredVehicle', function(veh,seat,modelName,netid)
+RegisterServerEvent('baseevents:enteredVehicle', function(veh,seat,modelName)
     local src = source
     local data = {
         vehicle = veh,
         seat = seat,
         name = modelName,
-        netid = netid,
         event = 'Entered'
     }
     TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
@@ -223,13 +225,12 @@ RegisterServerEvent('baseevents:enteringAborted', function()
     TriggerClientEvent('QBCore:Client:AbortVehicleEntering', src)
 end)
 
-RegisterServerEvent('baseevents:leftVehicle', function(veh,seat,modelName,netid)
+RegisterServerEvent('baseevents:leftVehicle', function(veh,seat,modelName)
     local src = source
     local data = {
         vehicle = veh,
         seat = seat,
         name = modelName,
-        netid = netid,
         event = 'Left'
     }
     TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
