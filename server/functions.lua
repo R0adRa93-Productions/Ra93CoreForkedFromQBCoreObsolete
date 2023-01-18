@@ -414,3 +414,14 @@ end
 function QBCore.Functions.Notify(source, text, type, length)
     TriggerClientEvent('QBCore:Notify', source, text, type, length)
 end
+
+--- SQL Pattern Matching
+function QBCore.Functions.PrepForSQL(source,data,pattern)
+    local src = source
+    local player = QBCore.Functions.GetPlayer(src)
+    if not data:match(pattern) then
+        TriggerEvent('qb-log:server:CreateLog', 'anticheat', 'SQL Injection Attempted', 'red', string.format('%s Attempted a SQL Exploit!', player.PlayerData.license))
+        return false
+    end
+    return true
+end

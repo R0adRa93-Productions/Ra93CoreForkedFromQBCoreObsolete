@@ -140,7 +140,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job = PlayerData.job or {}
     PlayerData.job.name = PlayerData.job.name or 'unemployed'
     PlayerData.job.label = PlayerData.job.label or 'Civilian'
-    PlayerData.job.payment = PlayerData.job.payment or QBCore.Shared.Jobs["unemployed"]['0'].payment
+    PlayerData.job.payment = PlayerData.job.payment or QBCore.Shared.Jobs["unemployed"]["grades"]['0'].payment
     PlayerData.job.type = PlayerData.job.type or 'none'
     if QBCore.Shared.ForceJobDefaultDutyAtLogin or PlayerData.job.onduty == nil then
         PlayerData.job.onduty = QBCore.Shared.Jobs[PlayerData.job.name].defaultDuty
@@ -148,7 +148,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job.isboss = PlayerData.job.isboss or false
     PlayerData.job.grade = PlayerData.job.grade or {}
     PlayerData.job.grade.name = PlayerData.job.grade.name or 'Freelancer'
-    PlayerData.job.grade.level = PlayerData.job.grade.level or 0
+    PlayerData.job.grade.level = PlayerData.job.grade.level or '0'
     -- Gang
     if PlayerData.gang and PlayerData.gang.name and not QBCore.Shared.Gangs[PlayerData.gang.name] then PlayerData.gang = nil end
     PlayerData.gang = PlayerData.gang or {}
@@ -157,7 +157,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.gang.isboss = PlayerData.gang.isboss or false
     PlayerData.gang.grade = PlayerData.gang.grade or {}
     PlayerData.gang.grade.name = PlayerData.gang.grade.name or 'none'
-    PlayerData.gang.grade.level = PlayerData.gang.grade.level or 0
+    PlayerData.gang.grade.level = PlayerData.gang.grade.level or '0'
     -- Other
     PlayerData.position = PlayerData.position or QBConfig.DefaultSpawn
     PlayerData.items = GetResourceState('qb-inventory') ~= 'missing' and exports['qb-inventory']:LoadInventory(PlayerData.source, PlayerData.citizenid) or {}
@@ -178,7 +178,7 @@ end
 -- Don't touch any of this unless you know what you are doing
 -- Will cause major issues!
 
-function QBCore.Player.CreatePlayer(PlayerData, Offline)
+function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
     local self = {}
     self.Functions = {}
     self.PlayerData = PlayerData
@@ -190,70 +190,40 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline)
         TriggerClientEvent('QBCore:Player:SetPlayerData', self.PlayerData.source, self.PlayerData)
     end
 
-    function self.Functions.SetJob(job, grade)
-        local gradeChange
-        local currentGrade = self.PlayerData.job.grade.level
-        local currentJob = self.PlayerData.job.name
+    function self.Functions.SetJob(job, grade, prevJob)
         job = job:lower()
-        grade = tonumber(grade) or 0
+        grade = tostring(grade) or 0
+        if QBCore.Shared.QBJobsStatus then grade = tostring(grade) or "0" end
         if not QBCore.Shared.Jobs[job] then return false end
-        if job == "quit" then
-            self.PlayerData.metadata.jobhistory[currentJob].quitcount += 1
-            self.PlayerData.metadata.jobs[currentJob] = nil
-            job = "unemployed"
-            grade = 0
-        elseif job == "fired" then
-            self.PlayerData.metadata.jobhistory[currentJob].firedcount += 1
-            self.PlayerData.metadata.jobs[currentJob] = nil
-            job = "unemployed"
-            grade = 0
-        else
-            if job == self.PlayerData.job.name then
-                if grade > currentGrade then gradeChange = "promotion from " .. currentGrade .. " to " .. grade
-                elseif grade < currentGrade then gradeChange = "demotion from " .. currentGrade .. " to " .. grade
-                else gradeChange = "grade remained the same" end
-                self.PlayerData.metadata.jobhistory[job].gradechangecount += 1
-                self.PlayerData.metadata.jobhistory[job].gradehistory[#self.PlayerData.metadata.jobhistory[job].gradechange + 1] = gradeChange
-            end
-        end
-        if job and job ~= "unemployed" then
-            self.PlayerData.metadata.jobs[job] = nil
-            self.PlayerData.metadata.jobs[job] = self.PlayerData.job
-        end
         self.PlayerData.job.name = job
-        self.PlayerData.job.payment = QBCore.Shared.Jobs[job].grades[grade].payment
         self.PlayerData.job.label = QBCore.Shared.Jobs[job].label
-        self.PlayerData.job.grade = {
-            ["level"] = grade,
-            ["name"] = QBCore.Shared.Jobs[job].grades[grade].name
-        }
         self.PlayerData.job.onduty = QBCore.Shared.Jobs[job].defaultDuty
         self.PlayerData.job.type = QBCore.Shared.Jobs[job].type or 'none'
-        self.PlayerData.metadata.jobhistory[job] = {
-            ["status"] = self.PlayerData.metadata.jobhistory[job].status or "hired",
-            ["rehireable"] = self.PlayerData.metadata.jobhistory[job].rehireable or true,
-            ["writeups"] = self.PlayerData.metadata.jobhistory[job].writeups or {},
-            ["awards"] = self.PlayerData.metadata.jobhistory[job].awards or {},
-            ["gradehistory"] = self.PlayerData.metadata.jobhistory[job].gradehistory or {},
-            ["gradechangecount"] = self.PlayerData.metadata.jobhistory[job].gradechangecount or 0,
-            ["firecount"] = self.PlayerData.metadata.jobhistory[job].firecount or 0,
-            ["hirecount"] = self.PlayerData.metadata.jobhistory[job].hirecount or 0,
-            ["quitcount"] = self.PlayerData.metadata.jobhistory[job].quitcount or 0,
-            ["denycount"] = self.PlayerData.metadata.jobhistory[job].denycount or 0,
-            ["applycount"] = self.PlayerData.metadata.jobhistory[job].applycount + 1 or 1,
-        }
-        if not self.Offline then
-            self.Functions.UpdatePlayerData()
-            TriggerEvent('QBCore:Server:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
-            TriggerClientEvent('QBCore:Client:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
+        if QBCore.Shared.Jobs[job].grades[grade] then
+            local jobgrade = QBCore.Shared.Jobs[job].grades[grade]
+            self.PlayerData.job.grade = {}
+            self.PlayerData.job.grade.name = jobgrade.name
+            self.PlayerData.job.grade.level = tostring(grade)
+            self.PlayerData.job.payment = jobgrade.payment or 30
+            self.PlayerData.job.isboss = jobgrade.isboss or false
+        else
+            self.PlayerData.job.grade = {}
+            self.PlayerData.job.grade.name = 'No Grades'
+            self.PlayerData.job.grade.level = 0
+            self.PlayerData.job.payment = 30
+            self.PlayerData.job.isboss = false
         end
+
+        self.Functions.UpdatePlayerData()
+        TriggerEvent('QBCore:Server:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
+        TriggerClientEvent('QBCore:Client:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
 
         return true
     end
 
     function self.Functions.SetGang(gang, grade)
         gang = gang:lower()
-        grade = tonumber(grade) or 0
+        grade = tostring(grade) or "0"
         if not QBCore.Shared.Gangs[gang] then return false end
         self.PlayerData.gang.name = gang
         self.PlayerData.gang.label = QBCore.Shared.Gangs[gang].label
@@ -261,12 +231,12 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline)
             local ganggrade = QBCore.Shared.Gangs[gang].grades[grade]
             self.PlayerData.gang.grade = {}
             self.PlayerData.gang.grade.name = ganggrade.name
-            self.PlayerData.gang.grade.level = tonumber(grade)
+            self.PlayerData.gang.grade.level = tostring(grade)
             self.PlayerData.gang.isboss = ganggrade.isboss or false
         else
             self.PlayerData.gang.grade = {}
-            self.PlayerData.gang.grade.name = 'No Grades'
-            self.PlayerData.gang.grade.level = 0
+            self.PlayerData.gang.grade.name = "No Grades"
+            self.PlayerData.gang.grade.level = "0"
             self.PlayerData.gang.isboss = false
         end
 
@@ -307,10 +277,30 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline)
     function self.Functions.AddJobReputation(amount)
         if not amount then return end
         amount = tonumber(amount)
-        if not self.PlayerData.metadata.jobrep[self.PlayerData.job.name] then
-            self.PlayerData.metadata.jobrep[self.PlayerData.job.name] = 0
-        end
-        self.PlayerData.metadata.jobrep[self.PlayerData.job.name] = self.PlayerData.metadata.jobrep[self.PlayerData.job.name] + amount
+        local job = self.PlayerData.job.name
+        if not self.PlayerData.metadata.jobrep[job] then self.PlayerData.metadata.jobrep[job] = "0" end
+        self.PlayerData.metadata.jobrep[job] += amount or amount
+        self.Functions.UpdatePlayerData()
+    end
+
+    function self.Functions.AddToJobHistory(job,jobHistoryData)
+        if not job or not jobHistoryData then return "failure" end
+        self.PlayerData.metadata.jobhistory[job] = jobHistoryData
+        self.Functions.UpdatePlayerData()
+        return "success"
+    end
+
+    function self.Functions.AddToJobs(job,data)
+        if not job and not data then return end
+        job = job:lower()
+        self.PlayerData.metadata.jobs[job] = data
+        self.Functions.UpdatePlayerData()
+    end
+
+    function self.Functions.RemoveFromJobs(job)
+        if not job then return end
+        job = job:lower()
+        self.PlayerData.metadata.jobs[job] = nil
         self.Functions.UpdatePlayerData()
     end
 
@@ -469,7 +459,7 @@ function QBCore.Functions.AddPlayerMethod(ids, methodName, handler)
 
             QBCore.Players[ids].Functions.AddMethod(methodName, handler)
         end
-    elseif idType == "table" and table.type(ids) == "array" then
+    elseif idType == "table" and type(ids) == "array" then
         for i = 1, #ids do
             QBCore.Functions.AddPlayerMethod(ids[i], methodName, handler)
         end
@@ -496,7 +486,7 @@ function QBCore.Functions.AddPlayerField(ids, fieldName, data)
 
             QBCore.Players[ids].Functions.AddField(fieldName, data)
         end
-    elseif idType == "table" and table.type(ids) == "array" then
+    elseif idType == "table" and type(ids) == "array" then
         for i = 1, #ids do
             QBCore.Functions.AddPlayerField(ids[i], fieldName, data)
         end
