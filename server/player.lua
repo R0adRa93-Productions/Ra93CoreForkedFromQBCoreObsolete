@@ -284,10 +284,36 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
     end
 
     function self.Functions.AddToJobHistory(job,jobHistoryData)
-        if not job or not jobHistoryData then return "failure" end
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        local ercnt = 0
+        if not job or not jobHistoryData then
+            status.error[ercnt] = {
+                ["subject"] = "AddToJobHistory Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua AddToJobHistory",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
         self.PlayerData.metadata.jobhistory[job] = jobHistoryData
         self.Functions.UpdatePlayerData()
-        return "success"
+        status.success[ercnt] = {
+            ["subject"] = "AddToJobHistory Success",
+            ["msg"] = "AddToJobHistory Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["console"] = true
+        }
+        return status
     end
 
     function self.Functions.AddToJobs(job,data)
