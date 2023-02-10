@@ -5,15 +5,31 @@ QBConfig = {
     ["StatusInterval"] = 5000, -- how often to check hunger/thirst status in milliseconds
     ["Money"] = {
         ["CurrencySymbol"] = "$",
-        ["MoneyTypes"] = { ["cash"] = 500, ["bank"] = 5000, ["crypto"] = 0 }, -- type = startamount - Add or remove money types for your server (for ex. blackmoney = 0), remember once added it will not be removed from the database!
-        ["DontAllowMinus"] = { 'cash', 'crypto' }, -- Money that is not allowed going in minus
+        ["MoneyTypes"] = {
+            ["cash"] = 500,
+            ["bank"] = 5000,
+            ["crypto"] = 0
+        }, -- type = startamount - Add or remove money types for your server (for ex. blackmoney = 0), remember once added it will not be removed from the database!
+        ["DontAllowMinus"] = {
+            "cash",
+            "crypto"
+        }, -- Money that is not allowed going in minus
         ["PayCheckTimeOut"] = 10, -- The time in minutes that it will give the paycheck
         ["PayCheckSociety"] = false, -- If true paycheck will come from the society account that the player is employed at, requires qb-management
     },
     ["Player"] = {
         ["HungerRate"] = 4.2, -- Rate at which hunger goes down.
         ["ThirstRate"] = 3.8, -- Rate at which thirst goes down.
-        ["Bloodtypes"] = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"},
+        ["Bloodtypes"] = {
+            "A+",
+            "A-",
+            "B+",
+            "B-",
+            "AB+",
+            "AB-",
+            "O+",
+            "O-"
+        }
     },
     ["Server"] = {
         ["Closed"] = false, -- Set server closed (no one can join except people with ace permission 'qbadmin.join')
@@ -57,5 +73,10 @@ QBConfig = {
                 ["icon"] = 'fas fa-ambulance'
             }
         }
+    },
+    ["NewPlayerLicenses"] = {
+        ["driver"] = true,
+        ['business'] = false,
+        ['weapon'] = false
     }
 }

@@ -108,8 +108,8 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.metadata['currentapartment'] = PlayerData.metadata['currentapartment'] or nil
     PlayerData.metadata['jobhistory'] = PlayerData.metadata['jobhistory'] or {}
     PlayerData.metadata['jobs'] = PlayerData.metadata['jobs'] or {}
-    PlayerData.metadata['jobrep'] = PlayerData.metadata['jobrep'] or {}
     PlayerData.metadata['gangs'] = PlayerData.metadata['gangs'] or {}
+    PlayerData.metadata['jobrep'] = PlayerData.metadata['jobrep'] or {}
     PlayerData.metadata['gangrep'] = PlayerData.metadata['gangrep'] or {}
     PlayerData.metadata['callsign'] = PlayerData.metadata['callsign'] or 'NO CALLSIGN'
     PlayerData.metadata['fingerprint'] = PlayerData.metadata['fingerprint'] or QBCore.Player.CreateFingerId()
@@ -122,7 +122,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.metadata['licences'] = PlayerData.metadata['licences'] or {
         ['driver'] = QBConfig.NewPlayerLicenses.driver,
         ['business'] = QBConfig.NewPlayerLicenses.business,
-        ['weapon'] = QBConfig.NewPlayerLicenses.business
+        ['weapon'] = QBConfig.NewPlayerLicenses.weapon
     }
     PlayerData.metadata['inside'] = PlayerData.metadata['inside'] or {
         house = nil,
@@ -142,6 +142,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job.label = PlayerData.job.label or 'Civilian'
     PlayerData.job.payment = PlayerData.job.payment or QBCore.Shared.Jobs["unemployed"]["grades"]['0'].payment
     PlayerData.job.type = PlayerData.job.type or 'none'
+    PlayerData.job.status = PlayerData.job.status or "available"
     if QBCore.Shared.ForceJobDefaultDutyAtLogin or PlayerData.job.onduty == nil then
         PlayerData.job.onduty = QBCore.Shared.Jobs[PlayerData.job.name].defaultDuty
     end
@@ -154,6 +155,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.gang = PlayerData.gang or {}
     PlayerData.gang.name = PlayerData.gang.name or 'none'
     PlayerData.gang.label = PlayerData.gang.label or 'No Gang Affiliaton'
+    PlayerData.gang.status = PlayerData.gang.status or "available"
     PlayerData.gang.isboss = PlayerData.gang.isboss or false
     PlayerData.gang.grade = PlayerData.gang.grade or {}
     PlayerData.gang.grade.name = PlayerData.gang.grade.name or 'none'
@@ -190,7 +192,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         TriggerClientEvent('QBCore:Player:SetPlayerData', self.PlayerData.source, self.PlayerData)
     end
 
-    function self.Functions.SetJob(job, grade, prevJob)
+    function self.Functions.SetJob(job, grade)
         job = job:lower()
         grade = tostring(grade) or 0
         if QBCore.Shared.QBJobsStatus then grade = tostring(grade) or "0" end
@@ -199,6 +201,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         self.PlayerData.job.label = QBCore.Shared.Jobs[job].label
         self.PlayerData.job.onduty = QBCore.Shared.Jobs[job].defaultDuty
         self.PlayerData.job.type = QBCore.Shared.Jobs[job].type or 'none'
+        self.PlayerData.job.status = "hired"
         if QBCore.Shared.Jobs[job].grades[grade] then
             local jobgrade = QBCore.Shared.Jobs[job].grades[grade]
             self.PlayerData.job.grade = {}
@@ -227,12 +230,13 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         if not QBCore.Shared.Gangs[gang] then return false end
         self.PlayerData.gang.name = gang
         self.PlayerData.gang.label = QBCore.Shared.Gangs[gang].label
+        self.PlayerData.gang.status = "hired"
         if QBCore.Shared.Gangs[gang].grades[grade] then
-            local ganggrade = QBCore.Shared.Gangs[gang].grades[grade]
+            local gangGrade = QBCore.Shared.Gangs[gang].grades[grade]
             self.PlayerData.gang.grade = {}
-            self.PlayerData.gang.grade.name = ganggrade.name
+            self.PlayerData.gang.grade.name = gangGrade.name
             self.PlayerData.gang.grade.level = tostring(grade)
-            self.PlayerData.gang.isboss = ganggrade.isboss or false
+            self.PlayerData.gang.isboss = gangGrade.isboss or false
         else
             self.PlayerData.gang.grade = {}
             self.PlayerData.gang.grade.name = "No Grades"
@@ -247,6 +251,12 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         end
 
         return true
+    end
+
+    function self.Functions.SetActiveJob(job)
+        self.PlayerData.job = nil
+        self.PlayerData.job = job
+        self.Functions.UpdatePlayerData()
     end
 
     function self.Functions.SetJobDuty(onDuty)
@@ -283,6 +293,15 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         self.Functions.UpdatePlayerData()
     end
 
+    function self.Functions.SubtractJobReputation(amount)
+        if not amount then return end
+        amount = tonumber(amount)
+        local job = self.PlayerData.job.name
+        if not self.PlayerData.metadata.jobrep[job] then self.PlayerData.metadata.jobrep[job] = "0" end
+        self.PlayerData.metadata.jobrep[job] += amount or amount
+        self.Functions.UpdatePlayerData()
+    end
+
     function self.Functions.AddToJobHistory(job,jobHistoryData)
         local status = {
             ["error"] = {},
@@ -311,22 +330,174 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
             ["color"] = "success",
             ["logName"] = "qbcore",
             ["src"] = src,
-            ["console"] = true
+            ["log"] = true
         }
         return status
     end
 
     function self.Functions.AddToJobs(job,data)
-        if not job and not data then return end
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        local ercnt = 0
+        if not job or not data then
+            status.error[ercnt] = {
+                ["subject"] = "AddToJobs Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua AddToJobs",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
         job = job:lower()
         self.PlayerData.metadata.jobs[job] = data
         self.Functions.UpdatePlayerData()
+        status.success[ercnt] = {
+            ["subject"] = "AddToJobs Success",
+            ["msg"] = "AddToJobs Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["log"] = true
+        }
+        return status
+    end
+
+    function self.Functions.UpdateJob(data)
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        local ercnt = 0
+        if not data then
+            status.error[ercnt] = {
+                ["subject"] = "UpdateJob Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua UpdateJob",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
+        self.PlayerData.job = data
+        self.Functions.UpdatePlayerData()
+        status.success[ercnt] = {
+            ["subject"] = "UpdateJob Success",
+            ["msg"] = "UpdateJob Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["log"] = true
+        }
+        return status
     end
 
     function self.Functions.RemoveFromJobs(job)
         if not job then return end
         job = job:lower()
         self.PlayerData.metadata.jobs[job] = nil
+        self.Functions.UpdatePlayerData()
+    end
+
+    function self.Functions.AddGangReputation(amount)
+        if not amount then return end
+        amount = tonumber(amount)
+        local gang = self.PlayerData.gang.name
+        if not self.PlayerData.metadata.gangrep[gang] then self.PlayerData.metadata.gangrep[gang] = "0" end
+        self.PlayerData.metadata.gangrep[gang] += amount or amount
+        self.Functions.UpdatePlayerData()
+    end
+
+    function self.Functions.SubtractGangReputation(amount)
+        if not amount then return end
+        amount = tonumber(amount)
+        local gang = self.PlayerData.gang.name
+        if not self.PlayerData.metadata.gangrep[gang] then self.PlayerData.metadata.gangrep[gang] = "0" end
+        self.PlayerData.metadata.gangrep[gang] += amount or amount
+        self.Functions.UpdatePlayerData()
+    end
+
+    function self.Functions.AddToGangs(gang,data)
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        local ercnt = 0
+        if not gang or not data then
+            status.error[ercnt] = {
+                ["subject"] = "AddToGangs Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua AddToGangs",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
+        gang = gang:lower()
+        self.PlayerData.metadata.gangs[gang] = data
+        self.Functions.UpdatePlayerData()
+        status.success[ercnt] = {
+            ["subject"] = "AddToGangs Success",
+            ["msg"] = "AddToGangs Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["log"] = true
+        }
+        return status
+    end
+
+    function self.Functions.UpdateGang(data)
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        local ercnt = 0
+        if not data then
+            status.error[ercnt] = {
+                ["subject"] = "UpdateGang Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua UpdateGang",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
+        self.PlayerData.gang = data
+        self.Functions.UpdatePlayerData()
+        status.success[ercnt] = {
+            ["subject"] = "UpdateGang Success",
+            ["msg"] = "UpdateGang Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["log"] = true
+        }
+        return status
+    end
+
+    function self.Functions.RemoveFromGangs(gang)
+        if not gang then return end
+        gang = gang:lower()
+        self.PlayerData.metadata.gangs[gang] = nil
         self.Functions.UpdatePlayerData()
     end
 

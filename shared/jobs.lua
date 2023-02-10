@@ -1,6 +1,7 @@
 QBShared = QBShared or {}
 QBShared.ForceJobDefaultDutyAtLogin = true -- true: Force duty state to jobdefaultDuty | false: set duty state from database last saved
 QBShared.QBJobsStatus = true -- true: integrate qb-jobs into the whole of qb-core | false: treat qb-jobs as an add-on resource.
+-- If using qb-jobs do not fill out this file! Use qb-jobs for all jobs
 QBShared.Jobs = {} -- All of below has been migrated into qb-jobs
 if not QBShared.QBJobsStatus then
     QBShared.Jobs = {
