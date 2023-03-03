@@ -16,11 +16,11 @@ export const fetchNui = async (evName, data, mockData = null) => {
   const resourceName = window.GetParentResourceName();
 
   const rawResp = await fetch(`https://${resourceName}/${evName}`, {
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json; charset=UTF8",
-    },
-    method: "POST",
+ body: JSON.stringify(data),
+ headers: {
+   "Content-Type": "application/json; charset=UTF8",
+ },
+ method: "POST",
   });
 
   return await rawResp.json();

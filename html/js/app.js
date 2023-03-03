@@ -12,48 +12,48 @@ const { onMounted, onUnmounted } = Vue;
 
 const app = Vue.createApp({
   setup() {
-    const $q = useQuasar();
+ const $q = useQuasar();
 
-    const showNotif = async ({ data }) => {
-      // Otherwise we process any old MessageEvent with a data property
-      if (data?.action !== "notify") return;
+ const showNotif = async ({ data }) => {
+   // Otherwise we process any old MessageEvent with a data property
+   if (data?.action !== "notify") return;
 
-      const { text, length, type, caption } = data;
-      const { classes, icon } = determineStyleFromVariant(type);
+   const { text, length, type, caption } = data;
+   const { classes, icon } = determineStyleFromVariant(type);
 
-      // Make sure we have sucessfully fetched out config properly
-      if (!NOTIFY_CONFIG) {
-        console.error(
-          "The notification config did not load properly, trying again for next time"
-        );
-        // Lets check again to see if it exists
-        await fetchNotifyConfig();
-        // If we have a config lets re-run notification with same data, this
-        // isn't recursive though.
-        if (NOTIFY_CONFIG) return showNotif({ data });
-      }
+   // Make sure we have sucessfully fetched out config properly
+   if (!NOTIFY_CONFIG) {
+  console.error(
+    "The notification config did not load properly, trying again for next time"
+  );
+  // Lets check again to see if it exists
+  await fetchNotifyConfig();
+  // If we have a config lets re-run notification with same data, this
+  // isn't recursive though.
+  if (NOTIFY_CONFIG) return showNotif({ data });
+   }
 
-      $q.notify({
-        message: text,
-        multiLine: text.length > 100,
-        // If our text is larger than a 100 characters,
-        // we should use multiline notifications
-        group: NOTIFY_CONFIG.NotificationStyling.group ?? false,
-        progress: NOTIFY_CONFIG.NotificationStyling.progress ?? true,
-        position: NOTIFY_CONFIG.NotificationStyling.position ?? "right",
-        timeout: length,
-        caption,
-        classes,
-        icon,
-      });
-    };
-    onMounted(() => {
-      window.addEventListener("message", showNotif);
-    });
-    onUnmounted(() => {
-      window.removeEventListener("message", showNotif);
-    });
-    return {};
+   $q.notify({
+  message: text,
+  multiLine: text.length > 100,
+  // If our text is larger than a 100 characters,
+  // we should use multiline notifications
+  group: NOTIFY_CONFIG.NotificationStyling.group ?? false,
+  progress: NOTIFY_CONFIG.NotificationStyling.progress ?? true,
+  position: NOTIFY_CONFIG.NotificationStyling.position ?? "right",
+  timeout: length,
+  caption,
+  classes,
+  icon,
+   });
+ };
+ onMounted(() => {
+   window.addEventListener("message", showNotif);
+ });
+ onUnmounted(() => {
+   window.removeEventListener("message", showNotif);
+ });
+ return {};
   },
 });
 
