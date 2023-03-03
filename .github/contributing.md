@@ -1,4 +1,4 @@
-# Contributing to QBCore
+# Contributing to the Ra93 Core Framework
 
 First of all, thank you for taking the time to contribute!
 
@@ -37,18 +37,9 @@ These guidelines will help you help us in the best way possible regardless of yo
 
 > **Note:** Please don't file an issue to ask a question. You'll get faster results by using the resources below.
 
-* [QBCore Website](https://qbcore.org)
-* [QBCore Discord](https://discord.gg/qbcore)
+* [QBCore Website](Coming Soon)
+* [QBCore Discord](https://discord.gg/VrrHWnMuft)
 * [FiveM Discord - #qbcore channel](https://discord.gg/fivem)
-
-
-
-
-
-
-
-
-
 
 ## How Can I Contribute?
 
@@ -93,9 +84,7 @@ Include details about your setup:
 * **What OS is the server running on**?
 * **Which *extra* resources do you have installed?**
 
-
 ---
-
 
 ### Suggesting Features / Enhancements
 
@@ -122,19 +111,13 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Explain why this enhancement would be useful.**
 * **Be creative and unique.** Stealing ideas from popular servers 1:1 detail isn't going to get accepted.
 
-
 ---
-
-
 
 ### Your First Code Contribution
 
 Unsure where to begin contributing to QBCore? You can start by looking through these `beginner` and `help-wanted` issues.
 
-
-
 ---
-
 
 ### Pull Requests
 
@@ -152,7 +135,6 @@ Please follow these steps to have your contribution considered by the maintainer
 3. Await review by the reviewer(s).
 
 While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted.
-
 
 ---
 
@@ -178,7 +160,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
 
 All lua code should be done using all the best practices of proper lua using the easiest to read yet fastest/most optimized methods of execution.
 
-- Use 4 Space indentation
+- Use 1 Space indentation
 - Aim for lua 5.4 (include `lua54 'yes'` in the fxmanifest.lua)
 - Use `PlayerPedId()` instead of `GetPlayerPed(-1)`
 - Use `#(vector3 - vector3)` instead of `GetDistanceBetweenCoords()`
@@ -194,8 +176,7 @@ All lua code should be done using all the best practices of proper lua using the
 - Instead of `table.insert(myTable, "Value")` use `myTable[#myTable + 1] = "Value"`
 - Instead of `table.insert(ages, "bob", 30)` use `ages["bob"] = 30`
 
-
 ### JavaScript Styleguide
 
-- Use 4 Space indentation
+- Use 1 Space indentation
 - Don't repeat yourself.. if you're using the same operations in many different places convert them into a function with flexible variables.
