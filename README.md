@@ -1,5 +1,7 @@
 # rcCore
 
+Central Core Framework for Ra93 Core
+
 ### [Official rcCore Documentation](COMING SOON!)
 
 # License
