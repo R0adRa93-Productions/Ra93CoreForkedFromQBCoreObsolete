@@ -25,7 +25,7 @@ export let NOTIFY_CONFIG = null;
 export const determineStyleFromVariant = (variant) => {
   const variantData = NOTIFY_CONFIG.VariantDefinitions[variant];
   if (!variantData)
-    throw new Error(`Style of type: ${variant}, does not exist in the config`);
+ throw new Error(`Style of type: ${variant}, does not exist in the config`);
   return variantData;
 };
 
@@ -33,8 +33,8 @@ export const determineStyleFromVariant = (variant) => {
 export const fetchNotifyConfig = async () => {
   NOTIFY_CONFIG = await fetchNui("getNotifyConfig", {}, BrowserMockConfigData);
   if (isEnvBrowser() || DEV_MODE) {
-    console.log("Fetched Config:");
-    console.dir(NOTIFY_CONFIG);
+ console.log("Fetched Config:");
+ console.dir(NOTIFY_CONFIG);
   }
 };
 
