@@ -213,35 +213,39 @@ end, 'admin')
 
 -- Job
 
-QBCore.Commands.Add('job', Lang:t("command.job.help"), {}, false, function(source)
-    local PlayerJob = QBCore.Functions.GetPlayer(source).PlayerData.job
-    TriggerClientEvent('QBCore:Notify', source, Lang:t('info.job_info', {value = PlayerJob.label, value2 = PlayerJob.grade.name, value3 = PlayerJob.onduty}))
-end, 'user')
+--using this route to disable the command completely for qb-jobs support
+if not QBCore.Shared.QBJobsStatus then
 
-QBCore.Commands.Add('setjob', Lang:t("command.setjob.help"), { { name = Lang:t("command.setjob.params.id.name"), help = Lang:t("command.setjob.params.id.help") }, { name = Lang:t("command.setjob.params.job.name"), help = Lang:t("command.setjob.params.job.help") }, { name = Lang:t("command.setjob.params.grade.name"), help = Lang:t("command.setjob.params.grade.help") } }, true, function(source, args)
-    local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
-    if Player then
-        Player.Functions.SetJob(tostring(args[2]), tonumber(args[3]))
-    else
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
-    end
-end, 'admin')
+    QBCore.Commands.Add('job', Lang:t("command.job.help"), {}, false, function(source)
+        local PlayerJob = QBCore.Functions.GetPlayer(source).PlayerData.job
+        TriggerClientEvent('QBCore:Notify', source, Lang:t('info.job_info', {value = PlayerJob.label, value2 = PlayerJob.grade.name, value3 = PlayerJob.onduty}))
+    end, 'user')
 
--- Gang
+    QBCore.Commands.Add('setjob', Lang:t("command.setjob.help"), { { name = Lang:t("command.setjob.params.id.name"), help = Lang:t("command.setjob.params.id.help") }, { name = Lang:t("command.setjob.params.job.name"), help = Lang:t("command.setjob.params.job.help") }, { name = Lang:t("command.setjob.params.grade.name"), help = Lang:t("command.setjob.params.grade.help") } }, true, function(source, args)
+        -- by placing if QBCore.Shared.QBJobsStatus then return false end here will still make people think the command still exists and is broken.
+        local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
+        if Player then
+            Player.Functions.SetJob(tostring(args[2]), tonumber(args[3]))
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
+        end
+    end, 'admin')
 
-QBCore.Commands.Add('gang', Lang:t("command.gang.help"), {}, false, function(source)
-    local PlayerGang = QBCore.Functions.GetPlayer(source).PlayerData.gang
-    TriggerClientEvent('QBCore:Notify', source, Lang:t('info.gang_info', {value = PlayerGang.label, value2 = PlayerGang.grade.name}))
-end, 'user')
+    QBCore.Commands.Add('gang', Lang:t("command.gang.help"), {}, false, function(source)
+        local PlayerGang = QBCore.Functions.GetPlayer(source).PlayerData.gang
+        TriggerClientEvent('QBCore:Notify', source, Lang:t('info.gang_info', {value = PlayerGang.label, value2 = PlayerGang.grade.name}))
+    end, 'user')
 
-QBCore.Commands.Add('setgang', Lang:t("command.setgang.help"), { { name = Lang:t("command.setgang.params.id.name"), help = Lang:t("command.setgang.params.id.help") }, { name = Lang:t("command.setgang.params.gang.name"), help = Lang:t("command.setgang.params.gang.help") }, { name = Lang:t("command.setgang.params.grade.name"), help = Lang:t("command.setgang.params.grade.help") } }, true, function(source, args)
-    local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
-    if Player then
-        Player.Functions.SetGang(tostring(args[2]), tonumber(args[3]))
-    else
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
-    end
-end, 'admin')
+    QBCore.Commands.Add('setgang', Lang:t("command.setgang.help"), { { name = Lang:t("command.setgang.params.id.name"), help = Lang:t("command.setgang.params.id.help") }, { name = Lang:t("command.setgang.params.gang.name"), help = Lang:t("command.setgang.params.gang.help") }, { name = Lang:t("command.setgang.params.grade.name"), help = Lang:t("command.setgang.params.grade.help") } }, true, function(source, args)
+        -- by placing if QBCore.Shared.QBJobsStatus then return false end here will still make people think the command still exists and is broken.
+        local Player = QBCore.Functions.GetPlayer(tonumber(args[1]))
+        if Player then
+            Player.Functions.SetGang(tostring(args[2]), tonumber(args[3]))
+        else
+            TriggerClientEvent('QBCore:Notify', source, Lang:t('error.not_online'), 'error')
+        end
+    end, 'admin')
+end
 
 -- Out of Character Chat
 

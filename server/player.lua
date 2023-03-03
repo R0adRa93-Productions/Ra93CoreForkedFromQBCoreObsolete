@@ -107,6 +107,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.metadata['attachmentcraftingrep'] = PlayerData.metadata['attachmentcraftingrep'] or 0
     PlayerData.metadata['currentapartment'] = PlayerData.metadata['currentapartment'] or nil
     PlayerData.metadata['jobhistory'] = PlayerData.metadata['jobhistory'] or {}
+    PlayerData.metadata['ganghistory'] = PlayerData.metadata['ganghistory'] or {}
     PlayerData.metadata['jobs'] = PlayerData.metadata['jobs'] or {}
     PlayerData.metadata['gangs'] = PlayerData.metadata['gangs'] or {}
     PlayerData.metadata['jobrep'] = PlayerData.metadata['jobrep'] or {}
@@ -135,6 +136,7 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
         SerialNumber = QBCore.Player.CreateSerialNumber(),
         InstalledApps = {},
     }
+    PlayerData.metadata['deathinfo'] = PlayerData.metadata['deathinfo'] or {}
     -- Job
     if PlayerData.job and PlayerData.job.name and not QBCore.Shared.Jobs[PlayerData.job.name] then PlayerData.job = nil end
     PlayerData.job = PlayerData.job or {}
@@ -259,6 +261,12 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         self.Functions.UpdatePlayerData()
     end
 
+    function self.Functions.SetActiveGang(gang)
+        self.PlayerData.gang = nil
+        self.PlayerData.gang = gang
+        self.Functions.UpdatePlayerData()
+    end
+
     function self.Functions.SetJobDuty(onDuty)
         self.PlayerData.job.onduty = not not onDuty -- Make sure the value is a boolean if nil is sent
         self.Functions.UpdatePlayerData()
@@ -340,9 +348,8 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
             ["error"] = {},
             ["success"] = {}
         }
-        local ercnt = 0
         if not job or not data then
-            status.error[ercnt] = {
+            status.error[0] = {
                 ["subject"] = "AddToJobs Args Empty",
                 ["msg"] = "arguments empty: core >server > player.lua AddToJobs",
                 ["jsMsg"] = "Failure!",
@@ -357,7 +364,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         job = job:lower()
         self.PlayerData.metadata.jobs[job] = data
         self.Functions.UpdatePlayerData()
-        status.success[ercnt] = {
+        status.success[0] = {
             ["subject"] = "AddToJobs Success",
             ["msg"] = "AddToJobs Successful!",
             ["jsMsg"] = "Success!",
@@ -427,6 +434,38 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         self.Functions.UpdatePlayerData()
     end
 
+    function self.Functions.AddToGangHistory(gang,gangHistoryData)
+        local status = {
+            ["error"] = {},
+            ["success"] = {}
+        }
+        if not gang or not gangHistoryData then
+            status.error[0] = {
+                ["subject"] = "AddToGangHistory Args Empty",
+                ["msg"] = "arguments empty: core >server > player.lua AddToGangHistory",
+                ["jsMsg"] = "Failure!",
+                ["color"] = "error",
+                ["logName"] = "qbcore",
+                ["src"] = src,
+                ["log"] = true,
+                ["console"] = true
+            }
+            return status
+        end
+        self.PlayerData.metadata.ganghistory[gang] = gangHistoryData
+        self.Functions.UpdatePlayerData()
+        status.success[0] = {
+            ["subject"] = "AddToGangHistory Success",
+            ["msg"] = "AddToGangHistory Successful!",
+            ["jsMsg"] = "Success!",
+            ["color"] = "success",
+            ["logName"] = "qbcore",
+            ["src"] = src,
+            ["log"] = true
+        }
+        return status
+    end
+
     function self.Functions.AddToGangs(gang,data)
         local status = {
             ["error"] = {},
@@ -448,6 +487,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
         end
         gang = gang:lower()
         self.PlayerData.metadata.gangs[gang] = data
+        if self.PlayerData.metadata.gangs["none"] then self.PlayerData.metadata.gangs["none"] = nil end
         self.Functions.UpdatePlayerData()
         status.success[ercnt] = {
             ["subject"] = "AddToGangs Success",
@@ -541,11 +581,7 @@ function QBCore.Player.CreatePlayer(PlayerData, Offline, prevJob)
 
         if not self.Offline then
             self.Functions.UpdatePlayerData()
-            if amount > 100000 then
-                TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'RemoveMoney', 'red', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') removed, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason, true)
-            else
-                TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'RemoveMoney', 'red', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') removed, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason)
-            end
+            TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'RemoveMoney', 'red', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') removed, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason)
             TriggerClientEvent('hud:client:OnMoneyChange', self.PlayerData.source, moneytype, amount, true)
             if moneytype == 'bank' then
                 TriggerClientEvent('qb-phone:client:RemoveBankMoney', self.PlayerData.source, amount)
