@@ -99,6 +99,7 @@ local Translations = {
                 id = { name = 'id', help = 'Player ID' },
                 job = { name = 'job', help = 'Job name' },
                 grade = { name = 'grade', help = 'Job grade' },
+                prevJob = {name = "prevJob", help = "(optional) Previous job name"}
             },
         },
         gang = { help = 'Check Your Gang' },
