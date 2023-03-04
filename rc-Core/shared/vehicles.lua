@@ -1,6 +1,6 @@
-QBShared = QBShared or {}
+ra93Config = ra93Config or {}
 
-QBShared.Vehicles = {
+ra93Config.Vehicles = {
  --- Compacts
  ['asbo'] = { -- This has to match the spawn code of the vehicle
   ['name'] = 'Asbo', -- This is the display of the vehicle

@@ -1,7 +1,7 @@
-QBShared = QBShared or {}
-QBShared.Gangs = {} -- All of below has been migrated into qb-jobs
-if not QBShared.QBJobsStatus then
- QBShared.Gangs = {
+ra93Config = ra93Config or {}
+ra93Config.Gangs = {} -- All of below has been migrated into qb-jobs
+if not ra93Config.QBJobsStatus then
+ ra93Config.Gangs = {
   ['none'] = {
    label = 'No Gang',
    grades = {

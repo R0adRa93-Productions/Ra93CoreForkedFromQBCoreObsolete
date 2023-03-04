@@ -1,5 +1,5 @@
-QBShared = QBShared or {}
-QBShared.Items = {
+ra93Config = ra93Config or {}
+ra93Config.Items = {
  -- WEAPONS
  -- Melee
  ['weapon_unarmed']      = {['name'] = 'weapon_unarmed',        ['label'] = 'Fists',      ['weight'] = 1000,   ['type'] = 'weapon', ['ammotype'] = nil,      ['image'] = 'placeholder.png',    ['unique'] = true,   ['useable'] = false,  ['description'] = 'Fisticuffs'},
@@ -381,7 +381,7 @@ QBShared.Items = {
  ['antipatharia_coral']     = {['name'] = 'antipatharia_coral',    ['label'] = 'Antipatharia',    ['weight'] = 1000,   ['type'] = 'item',   ['image'] = 'antipatharia_coral.png',  ['unique'] = false,  ['useable'] = false,  ['shouldClose'] = true, ['combinable'] = nil,   ['description'] = 'Its also known as black corals or thorn corals'},
  ['diving_gear']      = {['name'] = 'diving_gear',      ['label'] = 'Diving Gear',     ['weight'] = 30000,  ['type'] = 'item',   ['image'] = 'diving_gear.png',    ['unique'] = true,   ['useable'] = true,  ['shouldClose'] = true, ['combinable'] = nil,   ['description'] = 'An oxygen tank and a rebreather'},
  ['diving_fill']      = {['name'] = 'diving_fill',       ['label'] = 'Diving Tube',     ['weight'] = 3000,   ['type'] = 'item',   ['image'] = 'diving_tube.png',    ['unique'] = true,   ['useable'] = true,  ['shouldClose'] = true, ['combinable'] = nil,   ['discription'] = 'An oxygen tube and a rebreather'},
- 
+
  -- Other Tools
  ['casinochips']      = {['name'] = 'casinochips',          ['label'] = 'Casino Chips',    ['weight'] = 0,   ['type'] = 'item',   ['image'] = 'casinochips.png',    ['unique'] = false,  ['useable'] = false,  ['shouldClose'] = false, ['combinable'] = nil,   ['description'] = 'Chips For Casino Gambling'},
  ['stickynote']         = {['name'] = 'stickynote',        ['label'] = 'Sticky note',     ['weight'] = 0,   ['type'] = 'item',   ['image'] = 'stickynote.png',    ['unique'] = true,   ['useable'] = false,  ['shouldClose'] = false,   ['combinable'] = nil,   ['description'] = 'Sometimes handy to remember something :)'},

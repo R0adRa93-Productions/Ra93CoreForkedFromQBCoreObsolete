@@ -21,8 +21,8 @@ Central Core Framework for Ra93 Core
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>
-    
-    QBCore Framework (Parent Code)
+
+    ra93Core Framework (Parent Code)
     Copyright (C) 2015-2022 ESX (Jérémie N'gadi), Joshua Eger
 
     This program is free software: you can redistribute it and/or modify

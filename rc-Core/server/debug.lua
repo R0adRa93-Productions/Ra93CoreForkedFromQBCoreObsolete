@@ -25,21 +25,21 @@ local function tPrint(tbl, indent)
  end
 end
 
-RegisterServerEvent('QBCore:DebugSomething', function(tbl, indent)
+RegisterServerEvent('ra93Core:DebugSomething', function(tbl, indent)
  local resource = GetInvokingResource() or "qb-core"
  print(('\x1b[4m\x1b[36m[ %s : DEBUG]\x1b[0m'):format(resource))
  tPrint(tbl, indent)
  print('\x1b[4m\x1b[36m[ END DEBUG ]\x1b[0m')
 end)
 
-function QBCore.Debug(tbl, indent)
- TriggerEvent('QBCore:DebugSomething', tbl, indent)
+function ra93Core.Debug(tbl, indent)
+ TriggerEvent('ra93Core:DebugSomething', tbl, indent)
 end
 
-function QBCore.ShowError(resource, msg)
+function ra93Core.ShowError(resource, msg)
  print('\x1b[31m[' .. resource .. ':ERROR]\x1b[0m ' .. msg)
 end
 
-function QBCore.ShowSuccess(resource, msg)
+function ra93Core.ShowSuccess(resource, msg)
  print('\x1b[32m[' .. resource .. ':LOG]\x1b[0m ' .. msg)
 end

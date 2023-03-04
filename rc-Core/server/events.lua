@@ -9,12 +9,12 @@ end)
 
 AddEventHandler('playerDropped', function(reason)
  local src = source
- if not QBCore.Players[src] then return end
- local Player = QBCore.Players[src]
+ if not ra93Core.Players[src] then return end
+ local Player = ra93Core.Players[src]
  TriggerEvent('qb-log:server:CreateLog', 'joinleave', 'Dropped', 'red', '**' .. GetPlayerName(src) .. '** (' .. Player.PlayerData.license .. ') left..' ..'\n **Reason:** ' .. reason)
  Player.Functions.Save()
- QBCore.Player_Buckets[Player.PlayerData.license] = nil
- QBCore.Players[src] = nil
+ ra93Core.Player_Buckets[Player.PlayerData.license] = nil
+ ra93Core.Players[src] = nil
 end)
 
 -- Player Connecting
@@ -28,9 +28,9 @@ local function onPlayerConnecting(name, _, deferrals)
  -- Mandatory wait
  Wait(0)
 
- if QBCore.Config.Server.Closed then
+ if ra93Core.config.Server.Closed then
   if not IsPlayerAceAllowed(src, 'qbadmin.join') then
-   deferrals.done(QBCore.Config.Server.ClosedReason)
+   deferrals.done(ra93Core.config.Server.ClosedReason)
   end
  end
 
@@ -47,7 +47,7 @@ local function onPlayerConnecting(name, _, deferrals)
 
  if not license then
   deferrals.done(Lang:t('error.no_valid_license'))
- elseif QBCore.Config.Server.CheckDuplicateLicense and QBCore.Functions.IsLicenseInUse(license) then
+ elseif ra93Core.config.Server.CheckDuplicateLicense and ra93Core.functions.IsLicenseInUse(license) then
   deferrals.done(Lang:t('error.duplicate_license'))
  end
 
@@ -58,16 +58,16 @@ local function onPlayerConnecting(name, _, deferrals)
  CreateThread(function()
   deferrals.update(string.format(Lang:t('info.checking_ban'), name))
   local databaseSuccess, databaseError = pcall(function()
-   local isBanned, Reason = QBCore.Functions.IsPlayerBanned(src)
+   local isBanned, Reason = ra93Core.functions.IsPlayerBanned(src)
    if isBanned then
     deferrals.done(Reason)
    end
   end)
 
-  if QBCore.Config.Server.Whitelist then
+  if ra93Core.config.Server.Whitelist then
    deferrals.update(string.format(Lang:t('info.checking_whitelisted'), name))
    databaseSuccess, databaseError = pcall(function()
-    if not QBCore.Functions.IsWhitelisted(src) then
+    if not ra93Core.functions.IsWhitelisted(src) then
      deferrals.done(Lang:t('error.not_whitelisted'))
     end
    end)
@@ -105,57 +105,59 @@ AddEventHandler('playerConnecting', onPlayerConnecting)
 
 -- Open & Close Server (prevents players from joining)
 
-RegisterNetEvent('QBCore:Server:CloseServer', function(reason)
+RegisterNetEvent('ra93Core:Server:CloseServer', function(reason)
  local src = source
- if QBCore.Functions.HasPermission(src, 'admin') then
+ if ra93Core.functions.HasPermission(src, 'admin') then
   reason = reason or 'No reason specified'
-  QBCore.Config.Server.Closed = true
-  QBCore.Config.Server.ClosedReason = reason
-  for k in pairs(QBCore.Players) do
-   if not QBCore.Functions.HasPermission(k, QBCore.Config.Server.WhitelistPermission) then
-    QBCore.Functions.Kick(k, reason, nil, nil)
+  ra93Core.config.Server.Closed = true
+  ra93Core.config.Server.ClosedReason = reason
+  for k in pairs(ra93Core.Players) do
+   if not ra93Core.functions.HasPermission(k, ra93Core.config.Server.WhitelistPermission) then
+    ra93Core.functions.Kick(k, reason, nil, nil)
    end
   end
  else
-  QBCore.Functions.Kick(src, Lang:t("error.no_permission"), nil, nil)
+  ra93Core.functions.Kick(src, Lang:t("error.no_permission"), nil, nil)
  end
 end)
 
-RegisterNetEvent('QBCore:Server:OpenServer', function()
+RegisterNetEvent('ra93Core:Server:OpenServer', function()
  local src = source
- if QBCore.Functions.HasPermission(src, 'admin') then
-  QBCore.Config.Server.Closed = false
+ if ra93Core.functions.HasPermission(src, 'admin') then
+  ra93Core.config.Server.Closed = false
  else
-  QBCore.Functions.Kick(src, Lang:t("error.no_permission"), nil, nil)
+  ra93Core.functions.Kick(src, Lang:t("error.no_permission"), nil, nil)
  end
 end)
 
 -- Callback Events --
 
 -- Client Callback
-RegisterNetEvent('QBCore:Server:TriggerClientCallback', function(name, ...)
- if QBCore.ClientCallbacks[name] then
-  QBCore.ClientCallbacks[name](...)
-  QBCore.ClientCallbacks[name] = nil
+
+RegisterNetEvent('ra93Core:Server:TriggerClientCallback', function(name, ...)
+ if ra93Core.clientCallBacks[name] then
+  ra93Core.clientCallBacks[name](...)
+  ra93Core.clientCallBacks[name] = nil
  end
 end)
 
 -- Server Callback
-RegisterNetEvent('QBCore:Server:TriggerCallback', function(name, ...)
+
+RegisterNetEvent('ra93Core:Server:TriggerCallback', function(name, ...)
  local src = source
- QBCore.Functions.TriggerCallback(name, src, function(...)
-  TriggerClientEvent('QBCore:Client:TriggerCallback', src, name, ...)
+ ra93Core.functions.TriggerCallback(name, src, function(...)
+  TriggerClientEvent('ra93Core:Client:TriggerCallback', src, name, ...)
  end, ...)
 end)
 
 -- Player
 
-RegisterNetEvent('QBCore:UpdatePlayer', function()
+RegisterNetEvent('ra93Core:UpdatePlayer', function()
  local src = source
- local Player = QBCore.Functions.GetPlayer(src)
+ local Player = ra93Core.functions.GetPlayer(src)
  if not Player then return end
- local newHunger = Player.PlayerData.metadata['hunger'] - QBCore.Config.Player.HungerRate
- local newThirst = Player.PlayerData.metadata['thirst'] - QBCore.Config.Player.ThirstRate
+ local newHunger = Player.PlayerData.metadata['hunger'] - ra93Core.config.Player.HungerRate
+ local newThirst = Player.PlayerData.metadata['thirst'] - ra93Core.config.Player.ThirstRate
  if newHunger <= 0 then
   newHunger = 0
  end
@@ -168,23 +170,24 @@ RegisterNetEvent('QBCore:UpdatePlayer', function()
  Player.Functions.Save()
 end)
 
-RegisterNetEvent('QBCore:ToggleDuty', function()
+RegisterNetEvent('ra93Core:ToggleDuty', function()
  local src = source
- local Player = QBCore.Functions.GetPlayer(src)
+ local Player = ra93Core.functions.GetPlayer(src)
  if not Player then return end
  if Player.PlayerData.job.onduty then
   Player.Functions.SetJobDuty(false)
-  TriggerClientEvent('QBCore:Notify', src, Lang:t('info.off_duty'))
+  TriggerClientEvent('ra93Core:Notify', src, Lang:t('info.off_duty'))
  else
   Player.Functions.SetJobDuty(true)
-  TriggerClientEvent('QBCore:Notify', src, Lang:t('info.on_duty'))
+  TriggerClientEvent('ra93Core:Notify', src, Lang:t('info.on_duty'))
  end
- TriggerClientEvent('QBCore:Client:SetDuty', src, Player.PlayerData.job.onduty)
+ TriggerClientEvent('ra93Core:Client:SetDuty', src, Player.PlayerData.job.onduty)
 end)
 
 -- BaseEvents
 
 -- Vehicles
+
 RegisterServerEvent('baseevents:enteringVehicle', function(veh,seat,modelName)
  local src = source
  local data = {
@@ -193,7 +196,7 @@ RegisterServerEvent('baseevents:enteringVehicle', function(veh,seat,modelName)
   name = modelName,
   event = 'Entering'
  }
- TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
+ TriggerClientEvent('ra93Core:Client:VehicleInfo', src, data)
 end)
 
 RegisterServerEvent('baseevents:enteredVehicle', function(veh,seat,modelName)
@@ -204,12 +207,12 @@ RegisterServerEvent('baseevents:enteredVehicle', function(veh,seat,modelName)
   name = modelName,
   event = 'Entered'
  }
- TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
+ TriggerClientEvent('ra93Core:Client:VehicleInfo', src, data)
 end)
 
 RegisterServerEvent('baseevents:enteringAborted', function()
  local src = source
- TriggerClientEvent('QBCore:Client:AbortVehicleEntering', src)
+ TriggerClientEvent('ra93Core:Client:AbortVehicleEntering', src)
 end)
 
 RegisterServerEvent('baseevents:leftVehicle', function(veh,seat,modelName)
@@ -220,45 +223,25 @@ RegisterServerEvent('baseevents:leftVehicle', function(veh,seat,modelName)
   name = modelName,
   event = 'Left'
  }
- TriggerClientEvent('QBCore:Client:VehicleInfo', src, data)
-end)
-
--- Items
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon.
-RegisterNetEvent('QBCore:Server:UseItem', function(item)
- print(string.format("%s triggered QBCore:Server:UseItem by ID %s with the following data. This event is deprecated due to exploitation, and will be removed soon. Check qb-inventory for the right use on this event.", GetInvokingResource(), source))
- QBCore.Debug(item)
-end)
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon. function(itemName, amount, slot)
-RegisterNetEvent('QBCore:Server:RemoveItem', function(itemName, amount)
- local src = source
- print(string.format("%s triggered QBCore:Server:RemoveItem by ID %s for %s %s. This event is deprecated due to exploitation, and will be removed soon. Adjust your events accordingly to do this server side with player functions.", GetInvokingResource(), src, amount, itemName))
-end)
-
--- This event is exploitable and should not be used. It has been deprecated, and will be removed soon. function(itemName, amount, slot, info)
-RegisterNetEvent('QBCore:Server:AddItem', function(itemName, amount)
- local src = source
- print(string.format("%s triggered QBCore:Server:AddItem by ID %s for %s %s. This event is deprecated due to exploitation, and will be removed soon. Adjust your events accordingly to do this server side with player functions.", GetInvokingResource(), src, amount, itemName))
+ TriggerClientEvent('ra93Core:Client:VehicleInfo', src, data)
 end)
 
 -- Non-Chat Command Calling (ex: qb-adminmenu)
 
-RegisterNetEvent('QBCore:CallCommand', function(command, args)
+RegisterNetEvent('ra93Core:CallCommand', function(command, args)
  local src = source
- if not QBCore.Commands.List[command] then return end
- local Player = QBCore.Functions.GetPlayer(src)
+ if not ra93Core.Commands.List[command] then return end
+ local Player = ra93Core.functions.GetPlayer(src)
  if not Player then return end
- local hasPerm = QBCore.Functions.HasPermission(src, "command."..QBCore.Commands.List[command].name)
+ local hasPerm = ra93Core.functions.HasPermission(src, "command."..ra93Core.Commands.List[command].name)
  if hasPerm then
-  if QBCore.Commands.List[command].argsrequired and #QBCore.Commands.List[command].arguments ~= 0 and not args[#QBCore.Commands.List[command].arguments] then
-   TriggerClientEvent('QBCore:Notify', src, Lang:t('error.missing_args2'), 'error')
+  if ra93Core.Commands.List[command].argsrequired and #ra93Core.Commands.List[command].arguments ~= 0 and not args[#ra93Core.Commands.List[command].arguments] then
+   TriggerClientEvent('ra93Core:Notify', src, Lang:t('error.missing_args2'), 'error')
   else
-   QBCore.Commands.List[command].callback(src, args)
+   ra93Core.Commands.List[command].callback(src, args)
   end
  else
-  TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_access'), 'error')
+  TriggerClientEvent('ra93Core:Notify', src, Lang:t('error.no_access'), 'error')
  end
 end)
 
@@ -266,7 +249,8 @@ end)
 -- Vehicle server-side spawning callback (netId)
 -- use the netid on the client with the NetworkGetEntityFromNetworkId native
 -- convert it to a vehicle via the NetToVeh native
-QBCore.Functions.CreateCallback('QBCore:Server:SpawnVehicle', function(source, cb, model, coords, warp)
+
+ra93Core.functions.CreateCallback('ra93Core:Server:SpawnVehicle', function(source, cb, model, coords, warp)
  local ped = GetPlayerPed(source)
  model = type(model) == 'string' and joaat(model) or model
  if not coords then coords = GetEntityCoords(ped) end
@@ -286,7 +270,8 @@ end)
 -- vehicle server-side spawning callback (netId)
 -- use the netid on the client with the NetworkGetEntityFromNetworkId native
 -- convert it to a vehicle via the NetToVeh native
-QBCore.Functions.CreateCallback('QBCore:Server:CreateVehicle', function(source, cb, model, coords, warp)
+
+ra93Core.functions.CreateCallback('ra93Core:Server:CreateVehicle', function(source, cb, model, coords, warp)
  model = type(model) == 'string' and GetHashKey(model) or model
  if not coords then coords = GetEntityCoords(GetPlayerPed(source)) end
  local CreateAutomobile = GetHashKey("CREATE_AUTOMOBILE")
@@ -296,6 +281,9 @@ QBCore.Functions.CreateCallback('QBCore:Server:CreateVehicle', function(source, 
  cb(NetworkGetNetworkIdFromEntity(veh))
 end)
 
---QBCore.Functions.CreateCallback('QBCore:HasItem', function(source, cb, items, amount)
--- https://github.com/qbcore-framework/qb-inventory/blob/e4ef156d93dd1727234d388c3f25110c350b3bcf/server/main.lua#L2066
---end)
+-- Security Events
+
+RegisterServerEvent("rcCore:server:secureEvents", function(eventData)
+    if not GetInvokingResource() then return false end
+    TriggerClientEvent(eventData.destEvent,eventData)
+end)

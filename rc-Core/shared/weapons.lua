@@ -1,5 +1,5 @@
-QBShared = QBShared or {}
-QBShared.Weapons = {
+ra93Config = ra93Config or {}
+ra93Config.Weapons = {
  -- // WEAPONS
  -- Melee
  [`weapon_unarmed`]      = {['name'] = 'weapon_unarmed',   ['label'] = 'Fists',     ['weapontype'] = 'Melee', ['ammotype'] = nil, ['damagereason'] = 'Melee killed / Whacked / Executed / Beat down / Murdered / Battered'},
