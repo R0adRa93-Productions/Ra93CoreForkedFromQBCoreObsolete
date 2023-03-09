@@ -39,9 +39,9 @@ local Translations = {
   tp = {
    help = 'TP til spiller eller koordinater (kun admin)',
    params = {
-    x = { name = 'id/x', help = 'ID for spiller eller X-posisjon'},
-    y = { name = 'y', help = 'Y posisjon'},
-    z = { name = 'z', help = 'Z posisjon'},
+ x = { name = 'id/x', help = 'ID for spiller eller X-posisjon'},
+ y = { name = 'y', help = 'Y posisjon'},
+ z = { name = 'z', help = 'Z posisjon'},
    },
   },
   tpm = { help = 'TP Til Markør (kun admin)' },
@@ -49,70 +49,70 @@ local Translations = {
   addpermission = {
    help = 'Gi spillertilganger (Kun gud)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    permission = { name = 'permission', help = 'Tilgangsnivå '},
+ id = { name = 'id', help = 'ID på spiller' },
+ permission = { name = 'permission', help = 'Tilgangsnivå '},
    },
   },
   removepermission = {
    help = 'Fjern spillertilganger (kun gud)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    permission = { name = 'permission', help = 'Tilgangsnivå' },
+ id = { name = 'id', help = 'ID på spiller' },
+ permission = { name = 'permission', help = 'Tilgangsnivå' },
    },
   },
   openserver = { help = 'Åpne opp serveren for alle (kun admin)' },
   closeserver = {
    help = 'Lukk serveren for personer uten tillatelser (kun admin)',
    params = {
-    reason = { name = 'reason', help = 'Årsak til stenging (valgfritt)' },
+ reason = { name = 'reason', help = 'Årsak til stenging (valgfritt)' },
    },
   },
   car = {
    help = 'Spawn kjøretøy (kun admin)',
    params = {
-    model = { name = 'model', help = 'Modellnavn på kjøretøyet' },
+ model = { name = 'model', help = 'Modellnavn på kjøretøyet' },
    },
   },
   dv = { help = 'Slett kjøretøy (kun admin)' },
   givemoney = {
    help = 'Gi en spiller penger (kun admin)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    moneytype = { name = 'moneytype', help = 'Type: (cash, bank, crypto)' },
-    amount = { name = 'amount', help = 'Pengebeløp' },
+ id = { name = 'id', help = 'ID på spiller' },
+ moneytype = { name = 'moneytype', help = 'Type: (cash, bank, crypto)' },
+ amount = { name = 'amount', help = 'Pengebeløp' },
    },
   },
   setmoney = {
    help = 'Angi spillerens pengebeløp (kun admin)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    moneytype = { name = 'moneytype', help = 'Type: (cash, bank, crypto)' },
-    amount = { name = 'amount', help = 'Pengebeløp' },
+ id = { name = 'id', help = 'ID på spiller' },
+ moneytype = { name = 'moneytype', help = 'Type: (cash, bank, crypto)' },
+ amount = { name = 'amount', help = 'Pengebeløp' },
    },
   },
   job = { help = 'Sjekk din jobb' },
   setjob = {
    help = 'Sett en spillerjobb (kun admin)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    job = { name = 'job', help = 'Jobb navn' },
-    grade = { name = 'grade', help = 'Jobb grad' },
+ id = { name = 'id', help = 'ID på spiller' },
+ job = { name = 'job', help = 'Jobb navn' },
+ grade = { name = 'grade', help = 'Jobb grad' },
    },
   },
   gang = { help = 'Sjekk din gjeng' },
   setgang = {
    help = 'Sett en spillergjeng (kun admin)',
    params = {
-    id = { name = 'id', help = 'ID på spiller' },
-    gang = { name = 'gang', help = 'Gjeng navn' },
-    grade = { name = 'grade', help = 'Gjeng grad' },
+ id = { name = 'id', help = 'ID på spiller' },
+ gang = { name = 'gang', help = 'Gjeng navn' },
+ grade = { name = 'grade', help = 'Gjeng grad' },
    },
   },
   ooc = { help = 'UAK Chat Melding' },
   me = {
    help = 'Vis lokal melding',
    params = {
-    message = { name = 'message', help = 'Melding å sende' }
+ message = { name = 'message', help = 'Melding å sende' }
    },
   },
  },

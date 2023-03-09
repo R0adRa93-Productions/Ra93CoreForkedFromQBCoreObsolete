@@ -39,9 +39,9 @@ local Translations = {
   tp = {
    help = 'TP al jugador o a las coordenadas (sólo para admin)',
    params = {
-    x = { name = 'id/x', help = 'ID de jugador o posición X'},
-    y = { name = 'y', help = 'Y posición'},
-    z = { name = 'z', help = 'Z posición'},
+ x = { name = 'id/x', help = 'ID de jugador o posición X'},
+ y = { name = 'y', help = 'Y posición'},
+ z = { name = 'z', help = 'Z posición'},
    },
   },
   tpm = { help = 'TP al marcador (sólo para admin)' },
@@ -49,70 +49,70 @@ local Translations = {
   addpermission = {
    help = 'Dar permisos al jugador (sólo modo Dios)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    permission = { name = 'permission', help = 'Nivel de permiso' },
+ id = { name = 'id', help = 'ID del jugador' },
+ permission = { name = 'permission', help = 'Nivel de permiso' },
    },
   },
   removepermission = {
    help = 'Eliminar los permisos de los jugadores (sólo modo Dios)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    permission = { name = 'permission', help = 'Nivel de permiso' },
+ id = { name = 'id', help = 'ID del jugador' },
+ permission = { name = 'permission', help = 'Nivel de permiso' },
    },
   },
   openserver = { help = 'Abrir el servidor para todo el mundo (sólo para admin)' },
   closeserver = {
    help = 'Cerrar el servidor para personas sin permisos (sólo para admin)',
    params = {
-    reason = { name = 'reason', help = 'Motivo del cierre (opcional)' },
+ reason = { name = 'reason', help = 'Motivo del cierre (opcional)' },
    },
   },
   car = {
    help = 'Crear Vehículo (sólo para admin)',
    params = {
-    model = { name = 'model', help = 'Nombre del modelo del vehículo' },
+ model = { name = 'model', help = 'Nombre del modelo del vehículo' },
    },
   },
   dv = { help = 'Borrar vehículo (sólo para admin)' },
   givemoney = {
    help = 'Dar dinero a un jugador (sólo para admin)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    moneytype = { name = 'moneytype', help = 'Tipo de dinero (efectivo, banco, cripto)' },
-    amount = { name = 'amount', help = 'Cantidad de dinero' },
+ id = { name = 'id', help = 'ID del jugador' },
+ moneytype = { name = 'moneytype', help = 'Tipo de dinero (efectivo, banco, cripto)' },
+ amount = { name = 'amount', help = 'Cantidad de dinero' },
    },
   },
   setmoney = {
    help = 'Establecer la cantidad de dinero de los jugadores (sólo para admin)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    moneytype = { name = 'moneytype', help = 'Tipo de dinero (efectivo, banco, cripto)' },
-    amount = { name = 'amount', help = 'Cantidad de dinero' },
+ id = { name = 'id', help = 'ID del jugador' },
+ moneytype = { name = 'moneytype', help = 'Tipo de dinero (efectivo, banco, cripto)' },
+ amount = { name = 'amount', help = 'Cantidad de dinero' },
    },
   },
   job = { help = 'Compruebe su trabajo' },
   setjob = {
    help = 'Establecer un trabajo de jugador (sólo para admin)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    job = { name = 'job', help = 'Nombre del trabajo' },
-    grade = { name = 'grade', help = 'Grado de trabajo' },
+ id = { name = 'id', help = 'ID del jugador' },
+ job = { name = 'job', help = 'Nombre del trabajo' },
+ grade = { name = 'grade', help = 'Grado de trabajo' },
    },
   },
   gang = { help = 'Comprueba tu banda' },
   setgang = {
    help = 'Establecer una banda de jugadores (sólo para admin)',
    params = {
-    id = { name = 'id', help = 'ID del jugador' },
-    gang = { name = 'gang', help = 'Nombre de la banda' },
-    grade = { name = 'grade', help = 'Grado de banda' },
+ id = { name = 'id', help = 'ID del jugador' },
+ gang = { name = 'gang', help = 'Nombre de la banda' },
+ grade = { name = 'grade', help = 'Grado de banda' },
    },
   },
   ooc = { help = 'Mensaje del chat OOC' },
   me = {
    help = 'Mostrar mensaje local',
    params = {
-    message = { name = 'message', help = 'Mensaje a enviar' }
+ message = { name = 'message', help = 'Mensaje a enviar' }
    },
   },
  },

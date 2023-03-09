@@ -1,171 +1,91 @@
--- Add or change (a) method(s) in the ra93Core.functions table
-local function SetMethod(methodName, handler)
- if type(methodName) ~= "string" then
-  return false, "invalid_method_name"
- end
-
- ra93Core.functions[methodName] = handler
-
- TriggerEvent('ra93Core:Server:UpdateObject')
-
+local setMethod = function(methodName, handler)
+ if type(methodName) ~= "string" then return false, "invalid_method_name" end
+ Ra93Core.functions[methodName] = handler
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.SetMethod = SetMethod
-exports("SetMethod", SetMethod)
-
--- Add or change (a) field(s) in the ra93Core table
-local function SetField(fieldName, data)
- if type(fieldName) ~= "string" then
-  return false, "invalid_field_name"
- end
-
- ra93Core[fieldName] = data
-
- TriggerEvent('ra93Core:Server:UpdateObject')
-
+local setField = function(fieldName, data)
+ if type(fieldName) ~= "string" then return false, "invalid_field_name" end
+ Ra93Core[fieldName] = data
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.SetField = SetField
-exports("SetField", SetField)
-
--- Single add job function which should only be used if you planning on adding a single job
-local function AddJob(jobName, job)
- if type(jobName) ~= "string" then
-  return false, "invalid_job_name"
- end
-
- if ra93Core.shared.Jobs[jobName] then
-  return false, "job_exists"
- end
-
- ra93Core.shared.Jobs[jobName] = job
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Jobs', jobName, job)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local addJobGang = function(jg, type, data)
+ if type(jg) ~= "string" then return false, "invalid_job_name" end
+ if Ra93Core.shared.jobs[jg] then return false, "job_exists" end
+ Ra93Core.shared.jobs[jg] = job
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Jobs", jg, job)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.AddJob = AddJob
-exports('AddJob', AddJob)
-
--- Multiple Add Jobs
-local function AddJobs(jobs)
+local addJobs = function(jobs)
  local shouldContinue = true
  local message = "success"
  local errorItem = nil
-
  for key, value in pairs(jobs) do
   if type(key) ~= "string" then
-   message = 'invalid_job_name'
+   message = "invalid_job_name"
    shouldContinue = false
    errorItem = jobs[key]
    break
   end
-
-  if ra93Core.shared.Jobs[key] then
-   message = 'job_exists'
+  if Ra93Core.shared.jobs[key] then
+   message = "job_exists"
    shouldContinue = false
    errorItem = jobs[key]
    break
   end
-
-  ra93Core.shared.Jobs[key] = value
+  Ra93Core.shared.jobs[key] = value
  end
-
  if not shouldContinue then return false, message, errorItem end
- TriggerClientEvent('ra93Core:Client:OnSharedUpdateMultiple', -1, 'Jobs', jobs)
- TriggerEvent('ra93Core:Server:UpdateObject')
+ TriggerClientEvent("Ra93Core:client:onSharedUpdateMultiple", -1, "Jobs", jobs)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, message, nil
 end
 
-ra93Core.functions.AddJobs = AddJobs
-exports('AddJobs', AddJobs)
-
--- Single Remove Job
-local function RemoveJob(jobName)
- if type(jobName) ~= "string" then
-  return false, "invalid_job_name"
- end
-
- if not ra93Core.shared.Jobs[jobName] then
-  return false, "job_not_exists"
- end
-
- ra93Core.shared.Jobs[jobName] = nil
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Jobs', jobName, nil)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local removeJob = function(jg)
+ if type(jg) ~= "string" then return false, "invalid_job_name" end
+ if not Ra93Core.shared.jobs[jg] then return false, "job_not_exists" end
+ Ra93Core.shared.jobs[jg] = nil
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Jobs", jg, nil)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.RemoveJob = RemoveJob
-exports('RemoveJob', RemoveJob)
-
--- Single Update Job
-local function UpdateJob(jobName, job)
- if type(jobName) ~= "string" then
-  return false, "invalid_job_name"
- end
-
- if not ra93Core.shared.Jobs[jobName] then
-  return false, "job_not_exists"
- end
-
- ra93Core.shared.Jobs[jobName] = job
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Jobs', jobName, job)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local updateJob = function(jg, job)
+ if type(jg) ~= "string" then return false, "invalid_job_name" end
+ if not Ra93Core.shared.jobs[jg] then return false, "job_not_exists" end
+ Ra93Core.shared.jobs[jg] = job
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Jobs", jg, job)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.UpdateJob = UpdateJob
-exports('UpdateJob', UpdateJob)
-
--- Single add item
-local function AddItem(itemName, item)
- if type(itemName) ~= "string" then
-  return false, "invalid_item_name"
- end
-
- if ra93Core.shared.Items[itemName] then
-  return false, "item_exists"
- end
-
- ra93Core.shared.Items[itemName] = item
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Items', itemName, item)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local addItem = function(itemName, item)
+ if type(itemName) ~= "string" then return false, "invalid_item_name" end
+ if Ra93Core.shared.items[itemName] then return false, "item_exists" end
+ Ra93Core.shared.items[itemName] = item
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Items", itemName, item)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.AddItem = AddItem
-exports('AddItem', AddItem)
-
--- Single update item
-local function UpdateItem(itemName, item)
- if type(itemName) ~= "string" then
-  return false, "invalid_item_name"
- end
- if not ra93Core.shared.Items[itemName] then
-  return false, "item_not_exists"
- end
- ra93Core.shared.Items[itemName] = item
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Items', itemName, item)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local updateItem = function(itemName, item)
+ if type(itemName) ~= "string" then return false, "invalid_item_name" end
+ if not Ra93Core.shared.items[itemName] then return false, "item_not_exists" end
+ Ra93Core.shared.items[itemName] = item
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Items", itemName, item)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.UpdateItem = UpdateItem
-exports('UpdateItem', UpdateItem)
-
--- Multiple Add Items
-local function AddItems(items)
+local addItems = function(items)
  local shouldContinue = true
  local message = "success"
  local errorItem = nil
-
  for key, value in pairs(items) do
   if type(key) ~= "string" then
    message = "invalid_item_name"
@@ -173,72 +93,42 @@ local function AddItems(items)
    errorItem = items[key]
    break
   end
-
-  if ra93Core.shared.Items[key] then
+  if Ra93Core.shared.items[key] then
    message = "item_exists"
    shouldContinue = false
    errorItem = items[key]
    break
   end
-
-  ra93Core.shared.Items[key] = value
+  Ra93Core.shared.items[key] = value
  end
-
  if not shouldContinue then return false, message, errorItem end
- TriggerClientEvent('ra93Core:Client:OnSharedUpdateMultiple', -1, 'Items', items)
- TriggerEvent('ra93Core:Server:UpdateObject')
+ TriggerClientEvent("Ra93Core:client:onSharedUpdateMultiple", -1, "Items", items)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, message, nil
 end
 
-ra93Core.functions.AddItems = AddItems
-exports('AddItems', AddItems)
-
--- Single Remove Item
-local function RemoveItem(itemName)
- if type(itemName) ~= "string" then
-  return false, "invalid_item_name"
- end
-
- if not ra93Core.shared.Items[itemName] then
-  return false, "item_not_exists"
- end
-
- ra93Core.shared.Items[itemName] = nil
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Items', itemName, nil)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local removeItem = function(itemName)
+ if type(itemName) ~= "string" then return false, "invalid_item_name" end
+ if not Ra93Core.shared.items[itemName] then return false, "item_not_exists" end
+ Ra93Core.shared.items[itemName] = nil
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Items", itemName, nil)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.RemoveItem = RemoveItem
-exports('RemoveItem', RemoveItem)
-
--- Single Add Gang
-local function AddGang(gangName, gang)
- if type(gangName) ~= "string" then
-  return false, "invalid_gang_name"
- end
-
- if ra93Core.shared.Gangs[gangName] then
-  return false, "gang_exists"
- end
-
- ra93Core.shared.Gangs[gangName] = gang
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Gangs', gangName, gang)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local addGang = function(gangName, gang)
+ if type(gangName) ~= "string" then return false, "invalid_gang_name" end
+ if Ra93Core.shared.gangs[gangName] then return false, "gang_exists" end
+ Ra93Core.shared.gangs[gangName] = gang
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Gangs", gangName, gang)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.AddGang = AddGang
-exports('AddGang', AddGang)
-
--- Multiple Add Gangs
-local function AddGangs(gangs)
+local addGangs = function(gangs)
  local shouldContinue = true
  local message = "success"
  local errorItem = nil
-
  for key, value in pairs(gangs) do
   if type(key) ~= "string" then
    message = "invalid_gang_name"
@@ -246,90 +136,89 @@ local function AddGangs(gangs)
    errorItem = gangs[key]
    break
   end
-
-  if ra93Core.shared.Gangs[key] then
+  if Ra93Core.shared.gangs[key] then
    message = "gang_exists"
    shouldContinue = false
    errorItem = gangs[key]
    break
   end
-
-  ra93Core.shared.Gangs[key] = value
+  Ra93Core.shared.gangs[key] = value
  end
-
  if not shouldContinue then return false, message, errorItem end
- TriggerClientEvent('ra93Core:Client:OnSharedUpdateMultiple', -1, 'Gangs', gangs)
- TriggerEvent('ra93Core:Server:UpdateObject')
+ TriggerClientEvent("Ra93Core:client:onSharedUpdateMultiple", -1, "Gangs", gangs)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, message, nil
 end
 
-ra93Core.functions.AddGangs = AddGangs
-exports('AddGangs', AddGangs)
-
--- Single Remove Gang
-local function RemoveGang(gangName)
- if type(gangName) ~= "string" then
-  return false, "invalid_gang_name"
- end
-
- if not ra93Core.shared.Gangs[gangName] then
-  return false, "gang_not_exists"
- end
-
- ra93Core.shared.Gangs[gangName] = nil
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Gangs', gangName, nil)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local removeGang = function(gangName)
+ if type(gangName) ~= "string" then return false, "invalid_gang_name" end
+ if not Ra93Core.shared.gangs[gangName] then return false, "gang_not_exists" end
+ Ra93Core.shared.gangs[gangName] = nil
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Gangs", gangName, nil)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.RemoveGang = RemoveGang
-exports('RemoveGang', RemoveGang)
-
--- Single Update Gang
-local function UpdateGang(gangName, gang)
- if type(gangName) ~= "string" then
-  return false, "invalid_gang_name"
- end
-
- if not ra93Core.shared.Gangs[gangName] then
-  return false, "gang_not_exists"
- end
-
- ra93Core.shared.Gangs[gangName] = gang
-
- TriggerClientEvent('ra93Core:Client:OnSharedUpdate', -1, 'Gangs', gangName, gang)
- TriggerEvent('ra93Core:Server:UpdateObject')
+local updateGang = function(gangName, gang)
+ if type(gangName) ~= "string" then return false, "invalid_gang_name" end
+ if not Ra93Core.shared.gangs[gangName] then return false, "gang_not_exists" end
+ Ra93Core.shared.gangs[gangName] = gang
+ TriggerClientEvent("Ra93Core:client:onSharedUpdate", -1, "Gangs", gangName, gang)
+ TriggerEvent("Ra93Core:server:updateObject")
  return true, "success"
 end
 
-ra93Core.functions.UpdateGang = UpdateGang
-exports('UpdateGang', UpdateGang)
-
-local function GetCoreVersion(InvokingResource)
- local resourceVersion = GetResourceMetadata(GetCurrentResourceName(), 'version')
- if InvokingResource and InvokingResource ~= '' then
-  print(("%s called ra93Core version check: %s"):format(InvokingResource or 'Unknown Resource', resourceVersion))
- end
+local getCoreVersion = function(InvokingResource)
+ local resourceVersion = GetResourceMetadata(GetCurrentResourceName(), "version")
+ if InvokingResource and InvokingResource ~= "" then print(("%s called Ra93Core version check: %s"):format(InvokingResource or "Unknown Resource", resourceVersion)) end
  return resourceVersion
 end
 
-ra93Core.functions.GetCoreVersion = GetCoreVersion
-exports('GetCoreVersion', GetCoreVersion)
-
-local function ExploitBan(playerId, origin)
- local name = GetPlayerName(playerId)
- MySQL.insert('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)', {
+local banPlayer = function(src,reason,expire,resource)
+ local name = GetPlayerName(src)
+ MySQL.insert("INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)", {
   name,
-  ra93Core.functions.GetIdentifier(playerId, 'license'),
-  ra93Core.functions.GetIdentifier(playerId, 'discord'),
-  ra93Core.functions.GetIdentifier(playerId, 'ip'),
-  origin,
-  2147483647,
-  'Anti Cheat'
+  Ra93Core.functions.getIdentifier(src, "license"),
+  Ra93Core.functions.getIdentifier(src, "discord"),
+  Ra93Core.functions.getIdentifier(src, "ip"),
+  reason,
+  expire,
+  resource
  })
- DropPlayer(playerId, Lang:t('info.exploit_banned', {discord = ra93Core.config.Server.Discord}))
- TriggerEvent("qb-log:server:CreateLog", "anticheat", "Anti-Cheat", "red", name .. " has been banned for exploiting " .. origin)
+ TriggerEvent("rcLog:server:CreateLog", resource, "Player Banned", "red", string.format("%s was banned by %s for %s", name, resource, reason))
+ DropPlayer(src, ("You were permanently banned by the server for: %s"):format(reason))
 end
 
-exports('ExploitBan', ExploitBan)
+Ra93Core.functions.setMethod = setMethod
+Ra93Core.functions.setField = setField
+Ra93Core.functions.addJob = addJob
+Ra93Core.functions.addJobs = addJobs
+Ra93Core.functions.removeJob = removeJob
+Ra93Core.functions.updateJob = updateJob
+Ra93Core.functions.addItem = addItem
+Ra93Core.functions.updateItem = updateItem
+Ra93Core.functions.addItems = addItems
+Ra93Core.functions.removeItem = removeItem
+Ra93Core.functions.addGang = addGang
+Ra93Core.functions.addGangs = addGangs
+Ra93Core.functions.removeGang = removeGang
+Ra93Core.functions.updateGang = updateGang
+Ra93Core.functions.getCoreVersion = getCoreVersion
+Ra93Core.functions.banPlayer = banPlayer
+
+exports("addGang", addGang)
+exports("addGangs", addGangs)
+exports("addItem", addItem)
+exports("addItems", addItems)
+exports("addJob", addJob)
+exports("addJobs", addJobs)
+exports("banPlayer",banPlayer)
+exports("getCoreVersion", getCoreVersion)
+exports("removeGang", removeGang)
+exports("removeItem", removeItem)
+exports("removeJob", removeJob)
+exports("setField", setField)
+exports("setMethod", setMethod)
+exports("updateGang", updateGang)
+exports("updateItem", updateItem)
+exports("updateJob", updateJob)

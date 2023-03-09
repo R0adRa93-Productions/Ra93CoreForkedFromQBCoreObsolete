@@ -1,21 +1,29 @@
-RegisterNUICallback('getNotifyConfig', function(_, cb)
- cb(ra93Core.config.notify)
+RegisterNUICallback("getNotifyConfig", function(_, cb)
+ cb(Ra93Core.config.notify)
 end)
 
-ra93Core.Debug = function(resource, obj, depth)
- TriggerServerEvent('ra93Core:DebugSomething', resource, obj, depth)
+Ra93Core.client.debug = function(resource, obj, depth)
+ TriggerServerEvent("Ra93Core:debugSomething", obj, depth, resource)
 end
 
-ra93Core.functions = {
- ["getPlayerData"] = function(cb)
-  if not cb then return ra93Core.playerData end
-  cb(ra93Core.playerData)
+Ra93Core.functions = {
+ ["attachProp"] = function(ped, model, boneId, x, y, z, xR, yR, zR, vertex)
+  local modelHash = type(model) == "string" and GetHashKey(model) or model
+  local bone = GetPedBoneIndex(ped, boneId)
+  Ra93Core.functions.loadModel(modelHash)
+  local prop = CreateObject(modelHash, 1.0, 1.0, 1.0, 1, 1, 0)
+  AttachEntityToEntity(prop, ped, bone, x, y, z, xR, yR, zR, 1, 1, 0, 1, not vertex and 2 or 0, 1)
+  SetModelAsNoLongerNeeded(modelHash)
+  return prop
  end,
- ["getCoords"] = function(entity)
-  local coords = GetEntityCoords(entity)
-  return vector4(coords.x, coords.y, coords.z, GetEntityHeading(entity))
+ ["createClientCallback"] = function(name, cb)
+  Ra93Core.clientCallBacks[name] = cb
  end,
- ["DrawText"] = function(x, y, width, height, scale, r, g, b, a, text)
+ ["deleteVehicle"] = function(vehicle)
+  SetEntityAsMissionEntity(vehicle, true, true)
+  DeleteVehicle(vehicle)
+ end,
+ ["drawText"] = function(x, y, width, height, scale, r, g, b, a, text)
   SetTextFont(4)
   SetTextProportional(0)
   SetTextScale(scale, scale)
@@ -24,17 +32,16 @@ ra93Core.functions = {
   SetTextEdge(2, 0, 0, 0, 255)
   SetTextDropShadow()
   SetTextOutline()
-  SetTextEntry('STRING')
+  SetTextEntry("STRING")
   AddTextComponentString(text)
   DrawText(x - width / 2, y - height / 2 + 0.005)
  end,
- ["DrawText3D"] = function(x, y, z, text)
- -- Use local instead = function
+ ["drawText3D"] = function(x, y, z, text)
   SetTextScale(0.35, 0.35)
   SetTextFont(4)
   SetTextProportional(1)
   SetTextColour(255, 255, 255, 215)
-  SetTextEntry('STRING')
+  SetTextEntry("STRING")
   SetTextCentre(true)
   AddTextComponentString(text)
   SetDrawOrigin(x, y, z, 0)
@@ -43,87 +50,380 @@ ra93Core.functions = {
   DrawRect(0.0, 0.0 + 0.0125, 0.017 + factor, 0.03, 0, 0, 0, 75)
   ClearDrawOrigin()
  end,
- ["RequestAnimDict"] = function(animDict)
-  if HasAnimDictLoaded(animDict) then return end
-  RequestAnimDict(animDict)
-  while not HasAnimDictLoaded(animDict) do
-   Wait(0)
+ ["getBoneDistance"] = function(entity, boneType, boneIndex)
+  local bone = GetEntityBoneIndexByName(entity, boneIndex)
+  if boneType == 1 then bone = GetPedBoneIndex(entity, boneIndex) end
+  local boneCoords = GetWorldPositionOfEntityBone(entity, bone)
+  local playerCoords = GetEntityCoords(PlayerPedId())
+  return #(boneCoords - playerCoords)
+ end,
+ ["getCardinalDirection"] = function(entity)
+  entity = DoesEntityExist(entity) and entity or PlayerPedId()
+  if not DoesEntityExist(entity) then return "Cardinal Direction Error" end
+  local heading = GetEntityHeading(entity)
+  if ((heading >= 0 and heading < 45) or (heading >= 315 and heading < 360)) then return "North"
+  elseif (heading >= 45 and heading < 135) then return "East"
+  elseif (heading >= 135 and heading < 225) then return "South"
+  else return "West" end
+ end,
+ ["getClosestBone"] = function(entity, list)
+  local playerCoords, bone, coords, distance = GetEntityCoords(PlayerPedId())
+  for _, element in pairs(list) do
+   local boneCoords = GetWorldPositionOfEntityBone(entity, element.id or element)
+   local boneDistance = #(playerCoords - boneCoords)
+   if not coords or  distance > boneDistance then bone, coords, distance = element, boneCoords, boneDistance end
+  end
+  if not bone then
+   bone = {id = GetEntityBoneIndexByName(entity, "bodyshell"), type = "remains", name = "bodyshell"}
+   coords = GetWorldPositionOfEntityBone(entity, bone.id)
+   distance = #(coords - playerCoords)
+  end
+  return bone, coords, distance
+ end,
+ ["getClosestObject"] = function(coords)
+  local ped = PlayerPedId()
+  local objects = GetGamePool("CObject")
+  local closestDistance = -1
+  local closestObject = -1
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
+  for i = 1, #objects, 1 do
+   local objectCoords = GetEntityCoords(objects[i])
+   local distance = #(objectCoords - coords)
+   if closestDistance == -1 or closestDistance > distance then
+    closestObject = objects[i]
+    closestDistance = distance
+   end
+  end
+  return closestObject, closestDistance
+ end,
+ ["getClosestPed"] = function(coords, ignoreList)
+  local ped = PlayerPedId()
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
+  ignoreList = ignoreList or {}
+  local peds = Ra93Core.functions.getPeds(ignoreList)
+  local closestDistance = -1
+  local closestPed = -1
+  for i = 1, #peds, 1 do
+   local pedCoords = GetEntityCoords(peds[i])
+   local distance = #(pedCoords - coords)
+   if closestDistance == -1 or closestDistance > distance then
+    closestPed = peds[i]
+    closestDistance = distance
+   end
+  end
+  return closestPed, closestDistance
+ end,
+ ["getClosestPlayer"] = function(coords)
+  local ped = PlayerPedId()
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
+  local closestPlayers = Ra93Core.functions.getPlayersFromCoords(coords)
+  local closestDistance = -1
+  local closestPlayer = -1
+  for i = 1, #closestPlayers, 1 do
+   if closestPlayers[i] ~= PlayerId() and closestPlayers[i] ~= -1 then
+    local pos = GetEntityCoords(GetPlayerPed(closestPlayers[i]))
+    local distance = #(pos - coords)
+    if closestDistance == -1 or closestDistance > distance then
+     closestPlayer = closestPlayers[i]
+     closestDistance = distance
+    end
+   end
+  end
+  return closestPlayer, closestDistance
+ end,
+ ["getCurrentTime"] = function()
+  local obj = {}
+  obj.min = GetClockMinutes()
+  obj.hour = GetClockHours()
+  obj.ampm = "AM"
+  if obj.hour >= 13 then
+   obj.ampm = "PM"
+   obj.hour12 = obj.hour - 12
+  end
+  if obj.min <= 9 then obj.min = string.format("0%s",obj.min) end
+   obj.clock12 = string.format("%s:%s %s",obj.hour12,obj.min,obj.ampm)
+   obj.clock24 = string.format("%s:%s",obj.hour,obj.min)
+  return obj
+ end,
+ ["getClosestVehicle"] = function(coords)
+  local ped = PlayerPedId()
+  local vehicles = GetGamePool("CVehicle")
+  local closestDistance = -1
+  local closestVehicle = -1
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
+  for i = 1, #vehicles, 1 do
+   local vehicleCoords = GetEntityCoords(vehicles[i])
+   local distance = #(vehicleCoords - coords)
+   if closestDistance == -1 or closestDistance > distance then
+    closestVehicle = vehicles[i]
+    closestDistance = distance
+   end
+  end
+  return closestVehicle, closestDistance
+ end,
+ ["getCoords"] = function(entity)
+  local coords = GetEntityCoords(entity)
+  return vector4(coords.x, coords.y, coords.z, GetEntityHeading(entity))
+ end,
+ ["getGroundZCoord"] = function(coords)
+  if not coords then return end
+  local retval, groundZ = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z, 0)
+  if retval then return vector3(coords.x, coords.y, groundZ)
+  else
+   print("Could not find Ground Z Coordinates given 3D Coordinates")
+   print(coords)
+   return coords
   end
  end,
- ["PlayAnim"] = function(animDict, animName, upperbodyOnly, duration)
-  local flags = upperbodyOnly and 16 or 0
-  local runTime = duration or -1
-  ra93Core.functions.RequestAnimDict(animDict)
-  TaskPlayAnim(PlayerPedId(), animDict, animName, 8.0, 1.0, runTime, flags, 0.0, false, false, true)
-  RemoveAnimDict(animDict)
- end,
- ["LoadModel"] = function(model)
-  if HasModelLoaded(model) then return end
-  RequestModel(model)
-  while not HasModelLoaded(model) do
-   Wait(0)
+ ["getPeds"] = function(ignoreList)
+  local pedPool = GetGamePool("CPed")
+  local peds = {}
+  ignoreList = ignoreList or {}
+  for i = 1, #pedPool, 1 do
+   local found = false
+   for j = 1, #ignoreList, 1 do
+    if ignoreList[j] == pedPool[i] then found = true end
+   end
+   if not found then peds[#peds + 1] = pedPool[i] end
   end
+  return peds
  end,
- ["LoadAnimSet"] = function(animSet)
-  if HasAnimSetLoaded(animSet) then return end
-  RequestAnimSet(animSet)
-  while not HasAnimSetLoaded(animSet) do
-   Wait(0)
+ ["getPlate"] = function(vehicle)
+  if vehicle == 0 then return end
+  return Ra93Core.shared.trim(GetVehicleNumberPlateText(vehicle))
+ end,
+ ["getplayerData"] = function(cb)
+  if not cb then return Ra93Core.playerData end
+  cb(Ra93Core.playerData)
+ end,
+ ["getPlayersFromCoords"] = function(coords, distance)
+  local players = GetActivePlayers()
+  local ped = PlayerPedId()
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
+  distance = distance or 5
+  local closePlayers = {}
+  for _, player in pairs(players) do
+   local target = GetPlayerPed(player)
+   local targetCoords = GetEntityCoords(target)
+   local targetdistance = #(targetCoords - coords)
+   if targetdistance <= distance then closePlayers[#closePlayers + 1] = player end
   end
+  return closePlayers
  end,
- ["IsWearingGloves"] = function()
+ ["getStreetNametAtCoords"] = function(coords)
+  local streetname1, streetname2 = GetStreetNameAtCoord(coords.x, coords.y, coords.z)
+  return {
+   main = GetStreetNameFromHashKey(streetname1),
+   cross = GetStreetNameFromHashKey(streetname2)
+  }
+ end,
+ ["getVehicleLabel"] = function(vehicle)
+  if vehicle == nil or vehicle == 0 then return end
+  return GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)))
+ end,
+ ["getVehicleProperties"] = function(vehicle)
+  if DoesEntityExist(vehicle) then
+   local extras = {}
+   local modLivery = GetVehicleMod(vehicle, 48)
+   local doorStatus = {}
+   local tireBurstState = {}
+   local tireBurstCompletely = {}
+   local tireHealth = {}
+   local windowStatus = {}
+   local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
+   local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
+   if GetIsVehiclePrimaryColourCustom(vehicle) then
+    local r, g, b = GetVehicleCustomPrimaryColour(vehicle)
+    colorPrimary = {r, g, b}
+   end
+   if GetIsVehicleSecondaryColourCustom(vehicle) then
+    local r, g, b = GetVehicleCustomSecondaryColour(vehicle)
+    colorSecondary = {r, g, b}
+   end
+   for extraId = 0, 12 do
+    if DoesExtraExist(vehicle, extraId) then
+     local state = IsVehicleExtraTurnedOn(vehicle, extraId) == 1
+     extras[tostring(extraId)] = state
+    end
+   end
+   if GetVehicleMod(vehicle, 48) == -1 and GetVehicleLivery(vehicle) ~= 0 then modLivery = GetVehicleLivery(vehicle) end
+   for i = 0, 7 do
+    if i <= 3 then tireHealth[i] = GetVehicleWheelHealth(vehicle, i) end
+    if i <= 5 then
+     doorStatus[i] = IsVehicleDoorDamaged(vehicle, i) == 1
+     tireBurstState[i] = IsVehicleTyreBurst(vehicle, i, false)
+     tireBurstCompletely[i] = IsVehicleTyreBurst(vehicle, i, true)
+    end
+    windowStatus[i] = IsVehicleWindowIntact(vehicle, i) == 1
+   end
+   return {
+    bodyHealth = Ra93Core.shared.round(GetVehicleBodyHealth(vehicle), 0.1),
+    color1 = colorPrimary,
+    color2 = colorSecondary,
+    dashboardColor = GetVehicleDashboardColour(vehicle),
+    dirtLevel = Ra93Core.shared.round(GetVehicleDirtLevel(vehicle), 0.1),
+    doorStatus = doorStatus,
+    engineHealth = Ra93Core.shared.round(GetVehicleEngineHealth(vehicle), 0.1),
+    extras = extras,
+    fuelLevel = Ra93Core.shared.round(GetVehicleFuelLevel(vehicle), 0.1),
+    headlightColor = GetVehicleHeadlightsColour(vehicle),
+    interiorColor = GetVehicleInteriorColour(vehicle),
+    liveryRoof = GetVehicleRoofLivery(vehicle),
+    modAPlate = GetVehicleMod(vehicle, 35),
+    modAerials = GetVehicleMod(vehicle, 43),
+    modAirFilter = GetVehicleMod(vehicle, 40),
+    modArchCover = GetVehicleMod(vehicle, 42),
+    modArmor = GetVehicleMod(vehicle, 16),
+    modBackWheels = GetVehicleMod(vehicle, 24),
+    modBrakes = GetVehicleMod(vehicle, 12),
+    modCustomTiresF = GetVehicleModVariation(vehicle, 23),
+    modCustomTiresR = GetVehicleModVariation(vehicle, 24),
+    modDashboard = GetVehicleMod(vehicle, 29),
+    modDial = GetVehicleMod(vehicle, 30),
+    modDoorSpeaker = GetVehicleMod(vehicle, 31),
+    modEngine = GetVehicleMod(vehicle, 11),
+    modEngineBlock = GetVehicleMod(vehicle, 39),
+    modExhaust = GetVehicleMod(vehicle, 4),
+    modFender = GetVehicleMod(vehicle, 8),
+    modFrame = GetVehicleMod(vehicle, 5),
+    modFrontBumper = GetVehicleMod(vehicle, 1),
+    modFrontWheels = GetVehicleMod(vehicle, 23),
+    modGrille = GetVehicleMod(vehicle, 6),
+    modHood = GetVehicleMod(vehicle, 7),
+    modHorns = GetVehicleMod(vehicle, 14),
+    modHydrolic = GetVehicleMod(vehicle, 38),
+    modKit17 = GetVehicleMod(vehicle, 17),
+    modKit19 = GetVehicleMod(vehicle, 19),
+    modKit21 = GetVehicleMod(vehicle, 21),
+    modKit47 = GetVehicleMod(vehicle, 47),
+    modKit49 = GetVehicleMod(vehicle, 49),
+    modLivery = modLivery,
+    modOrnaments = GetVehicleMod(vehicle, 28),
+    modPlateHolder = GetVehicleMod(vehicle, 25),
+    modRearBumper = GetVehicleMod(vehicle, 2),
+    modRightFender = GetVehicleMod(vehicle, 9),
+    modRoof = GetVehicleMod(vehicle, 10),
+    modSeats = GetVehicleMod(vehicle, 32),
+    modShifterLeavers = GetVehicleMod(vehicle, 34),
+    modSideSkirt = GetVehicleMod(vehicle, 3),
+    modSmokeEnabled = IsToggleModOn(vehicle, 20),
+    modSpeakers = GetVehicleMod(vehicle, 36),
+    modSpoilers = GetVehicleMod(vehicle, 0),
+    modSteeringWheel = GetVehicleMod(vehicle, 33),
+    modStruts = GetVehicleMod(vehicle, 41),
+    modSuspension = GetVehicleMod(vehicle, 15),
+    modTank = GetVehicleMod(vehicle, 45),
+    modTransmission = GetVehicleMod(vehicle, 13),
+    modTrimA = GetVehicleMod(vehicle, 27),
+    modTrimB = GetVehicleMod(vehicle, 44),
+    modTrunk = GetVehicleMod(vehicle, 37),
+    modTurbo = IsToggleModOn(vehicle, 18),
+    modVanityPlate = GetVehicleMod(vehicle, 26),
+    modWindows = GetVehicleMod(vehicle, 46),
+    modXenon = IsToggleModOn(vehicle, 22),
+    model = GetEntityModel(vehicle),
+    neonColor = table.pack(GetVehicleNeonLightsColour(vehicle)),
+    neonEnabled = {
+     IsVehicleNeonLightEnabled(vehicle, 0),
+     IsVehicleNeonLightEnabled(vehicle, 1),
+     IsVehicleNeonLightEnabled(vehicle, 2),
+     IsVehicleNeonLightEnabled(vehicle, 3)
+    },
+    oilLevel = Ra93Core.shared.round(GetVehicleOilLevel(vehicle), 0.1),
+    pearlescentColor = pearlescentColor,
+    plate = Ra93Core.functions.getPlate(vehicle),
+    plateIndex = GetVehicleNumberPlateTextIndex(vehicle),
+    tankHealth = Ra93Core.shared.round(GetVehiclePetrolTankHealth(vehicle), 0.1),
+    tireBurstCompletely = tireBurstCompletely,
+    tireBurstState = tireBurstState,
+    tireHealth = tireHealth,
+    tyreSmokeColor = table.pack(GetVehicleTyreSmokeColor(vehicle)),
+    wheelColor = wheelColor,
+    wheelSize = GetVehicleWheelSize(vehicle),
+    wheelWidth = GetVehicleWheelWidth(vehicle),
+    wheels = GetVehicleWheelType(vehicle),
+    windowStatus = windowStatus,
+    windowTint = GetVehicleWindowTint(vehicle),
+    xenonColor = GetVehicleXenonLightsColour(vehicle),
+   }
+  else return end
+ end,
+ ["getZoneAtCoords"] = function(coords)
+  return GetLabelText(GetNameOfZone(coords))
+ end,
+ ["isWearingGloves"] = function()
   local ped = PlayerPedId()
   local armIndex = GetPedDrawableVariation(ped, 3)
   local model = GetEntityModel(ped)
-  if model == `mp_m_freemode_01` then
-   if ra93Core.shared.MaleNoGloves[armIndex] then
-    return false
-   end
-  else
-   if ra93Core.shared.FemaleNoGloves[armIndex] then
-    return false
-   end
-  end
+  if model == `mp_m_freemode_01` and Ra93Core.shared.maleNoGloves[armIndex] then return false
+  elseif model ~= `mp_m_freemode_01` and Ra93Core.shared.femaleNoGloves[armIndex] then return false end
   return true
  end,
- ["Notify"] = function(text, texttype, length)
+ ["loadAnimSet"] = function(animSet)
+  if HasAnimSetLoaded(animSet) then return end
+  RequestAnimSet(animSet)
+  while not HasAnimSetLoaded(animSet) do Wait(0) end
+ end,
+ ["loadModel"] = function(model)
+  if HasModelLoaded(model) then return end
+  RequestModel(model)
+  while not HasModelLoaded(model) do Wait(0) end
+ end,
+ ["loadParticleDictionary"] = function(dictionary)
+  if HasNamedPtfxAssetLoaded(dictionary) then return end
+  RequestNamedPtfxAsset(dictionary)
+  while not HasNamedPtfxAssetLoaded(dictionary) do Wait(0) end
+ end,
+ ["notify"] = function(text, textType, length)
   if type(text) == "table" then
-   local ttext = text.text or 'Placeholder'
-   local caption = text.caption or 'Placeholder'
-   texttype = texttype or 'primary'
+   local tText = text.text or "Placeholder"
+   local caption = text.caption or "Placeholder"
+   textType = textType or "primary"
    length = length or 5000
    SendNUIMessage({
-    action = 'notify',
-    type = texttype,
+    action = "notify",
+    type = textType,
     length = length,
-    text = ttext,
+    text = tText,
     caption = caption
    })
   else
-   texttype = texttype or 'primary'
+   textType = textType or "primary"
    length = length or 5000
    SendNUIMessage({
-    action = 'notify',
-    type = texttype,
+    action = "notify",
+    type = textType,
     length = length,
     text = text
    })
   end
  end,
- ["CreateClientCallback"] = function(name, cb)
-  ra93Core.clientCallBacks[name] = cb
+ ["playAnim"] = function(animDict, animName, upperbodyOnly, duration)
+  local flags = upperbodyOnly and 16 or 0
+  local runTime = duration or -1
+  Ra93Core.functions.requestAnimDict(animDict)
+  TaskPlayAnim(PlayerPedId(), animDict, animName, 8.0, 1.0, runTime, flags, 0.0, false, false, true)
+  RemoveAnimDict(animDict)
  end,
- ["TriggerClientCallback"] = function(name, cb, ...)
-  if not ra93Core.clientCallBacks[name] then return end
-  ra93Core.clientCallBacks[name](cb, ...)
+ ["prepForSQL"] = function(source,data,pattern)
+  data = tostring(data)
+  local src = source
+  local player = Ra93Core.functions.getPlayer(src)
+  local result = string.match(data, pattern)
+  if not result or string.len(result) ~= string.len(data)  then
+   TriggerEvent("rcLog:server:CreateLog", "anticheat", "SQL Exploit Attempted", "red", ("%s attempted to exploit SQL!"):format(player.playerData.license))
+   return false
+  end
+  return true
  end,
- ["TriggerCallback"] = function(name, cb, ...)
-  ra93Core.serverCallbacks[name] = cb
-  TriggerServerEvent('ra93Core:Server:TriggerCallback', name, ...)
- end,
- ["Progressbar"] = function(name, label, duration, useWhileDead, canCancel, disableControls, animation, prop, propTwo, onFinish, onCancel)
-  if GetResourceState('progressbar') ~= 'started' then error('progressbar needs to be started in order for ra93Core.functions.Progressbar to work') end
-  exports['progressbar']:Progress({
+ ["progressbar"] = function(name, label, duration, useWhileDead, canCancel, disableControls, animation, prop, propTwo, onFinish, onCancel)
+  if GetResourceState("progressbar") ~= "started" then error("progressbar needs to be started in order for Ra93Core.functions.progressbar to work") end
+  exports["progressbar"]:Progress({
    name = name:lower(),
    duration = duration,
    label = label,
@@ -135,752 +435,157 @@ ra93Core.functions = {
    propTwo = propTwo,
   }, function(cancelled)
    if not cancelled then
-    if onFinish then
-     onFinish()
-    end
+    if onFinish then onFinish() end
    else
-    if onCancel then
-     onCancel()
-    end
+    if onCancel then onCancel() end
    end
   end)
  end,
- ["GetVehicles"] = function()
-  return GetGamePool('CVehicle')
+ ["requestAnimDict"] = function(animDict)
+  if HasAnimDictLoaded(animDict) then return end
+  RequestAnimDict(animDict)
+  while not HasAnimDictLoaded(animDict) do Wait(0) end
  end,
- ["GetObjects"] = function()
-  return GetGamePool('CObject')
+ ["setVehicleProperties"] = function(vehicle, props)
+  local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
+  local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
+  local propNatives = {
+   ["bodyHealth"] = SetVehicleBodyHealth(vehicle, v + 0.0),
+   ["color1"] = function(prop)
+    if type(prop) == "number" then SetVehicleColours(vehicle, prop, colorSecondary)
+    else SetVehicleCustomPrimaryColour(vehicle, prop[1], prop[2], prop[3]) end
+   end,
+   ["color2"] = function(prop)
+    if type(prop) == "number" then SetVehicleColours(vehicle, prop or colorPrimary, prop)
+    else SetVehicleCustomSecondaryColour(vehicle, prop[1], prop[2], prop[3]) end
+   end,
+   ["dashboardColor"] = function(prop) VehicleDashboardColour(vehicle, prop) end,
+   ["dirtLevel"] = function(prop) VehicleDirtLevel(vehicle, prop + 0.0) end,
+   ["engineHealth"] = function(prop) VehicleEngineHealth(vehicle, prop + 0.0) end,
+   ["fuelLevel"] = function(prop) VehicleFuelLevel(vehicle, prop + 0.0) end,
+   ["headlightColor"] = function(prop) VehicleHeadlightsColour(vehicle, prop) end,
+   ["interiorColor"] = function(prop) VehicleInteriorColour(vehicle, prop) end,
+   ["liveryRoof"] = function(prop) VehicleRoofLivery(vehicle, prop) end,
+   ["modAPlate"] = function(prop) VehicleMod(vehicle, 35, prop, false) end,
+   ["modAerials"] = function(prop) VehicleMod(vehicle, 43, prop, false) end,
+   ["modAirFilter"] = function(prop) VehicleMod(vehicle, 40, prop, false) end,
+   ["modArchCover"] = function(prop) VehicleMod(vehicle, 42, prop, false) end,
+   ["modArmor"] = function(prop) VehicleMod(vehicle, 16, prop, false) end,
+   ["modBackWheels"] = function(prop) VehicleMod(vehicle, 24, prop, false) end,
+   ["modBrakes"] = function(prop) VehicleMod(vehicle, 12, prop, false) end,
+   ["modCustomTiresF"] = function(prop) VehicleMod(vehicle, 23, prop, false) end,
+   ["modCustomTiresR"] = function(prop) VehicleMod(vehicle, 24, prop, false) end,
+   ["modDashboard"] = function(prop) VehicleMod(vehicle, 29, prop, false) end,
+   ["modDial"] = function(prop) VehicleMod(vehicle, 30, prop, false) end,
+   ["modDoorSpeaker"] = function(prop) VehicleMod(vehicle, 31, prop, false) end,
+   ["modEngine"] = function(prop) VehicleMod(vehicle, 11, prop, false) end,
+   ["modEngineBlock"] = function(prop) VehicleMod(vehicle, 39, prop, false) end,
+   ["modExhaust"] = function(prop) VehicleMod(vehicle, 4, prop, false) end,
+   ["modFender"] = function(prop) VehicleMod(vehicle, 8, prop, false) end,
+   ["modFrame"] = function(prop) VehicleMod(vehicle, 5, prop, false) end,
+   ["modFrontBumper"] = function(prop) VehicleMod(vehicle, 1, prop, false) end,
+   ["modFrontWheels"] = function(prop) VehicleMod(vehicle, 23, prop, false) end,
+   ["modGrille"] = function(prop) VehicleMod(vehicle, 6, prop, false) end,
+   ["modHood"] = function(prop) VehicleMod(vehicle, 7, prop, false) end,
+   ["modHorns"] = function(prop) VehicleMod(vehicle, 14, prop, false) end,
+   ["modHydrolic"] = function(prop) VehicleMod(vehicle, 38, prop, false) end,
+   ["modKit17"] = function(prop) VehicleMod(vehicle, 17, prop, false) end,
+   ["modKit19"] = function(prop) VehicleMod(vehicle, 19, prop, false) end,
+   ["modKit21"] = function(prop) VehicleMod(vehicle, 21, prop, false) end,
+   ["modKit47"] = function(prop) VehicleMod(vehicle, 47, prop, false) end,
+   ["modKit49"] = function(prop) VehicleMod(vehicle, 49, prop, false) end,
+   ["modOrnaments"] = function(prop) VehicleMod(vehicle, 28, prop, false) end,
+   ["modPlateHolder"] = function(prop) VehicleMod(vehicle, 25, prop, false) end,
+   ["modRearBumper"] = function(prop) VehicleMod(vehicle, 2, prop, false) end,
+   ["modRightFender"] = function(prop) VehicleMod(vehicle, 9, prop, false) end,
+   ["modRoof"] = function(prop) VehicleMod(vehicle, 10, prop, false) end,
+   ["modSeats"] = function(prop) VehicleMod(vehicle, 32, prop, false) end,
+   ["modShifterLeavers"] = function(prop) VehicleMod(vehicle, 34, prop, false) end,
+   ["modSideSkirt"] = function(prop) VehicleMod(vehicle, 3, prop, false) end,
+   ["modSmokeEnabled"]= function(prop) ToggleVehicleMod(vehicle, 20, prop) end,
+   ["modSpeakers"] = function(prop) VehicleMod(vehicle, 36, prop, false) end,
+   ["modSpoilers"] = function(prop) VehicleMod(vehicle, 0, prop, false) end,
+   ["modSteeringWheel"] = function(prop) VehicleMod(vehicle, 33, prop, false) end,
+   ["modStruts"] = function(prop) VehicleMod(vehicle, 41, prop, false) end,
+   ["modSuspension"] = function(prop) VehicleMod(vehicle, 15, prop, false) end,
+   ["modTank"] = function(prop) VehicleMod(vehicle, 45, prop, false) end,
+   ["modTransmission"] = function(prop) VehicleMod(vehicle, 13, prop, false) end,
+   ["modTrimA"] = function(prop) VehicleMod(vehicle, 27, prop, false) end,
+   ["modTrimB"] = function(prop) VehicleMod(vehicle, 44, prop, false) end,
+   ["modTrunk"] = function(prop) VehicleMod(vehicle, 37, prop, false) end,
+   ["modTurbo"]= function(prop) ToggleVehicleMod(vehicle, 18, prop) end,
+   ["modVanityPlate"] = function(prop) VehicleMod(vehicle, 26, prop, false) end,
+   ["modWindows"] = function(prop) VehicleMod(vehicle, 46, prop, false) end,
+   ["modXenon"]= function(prop) ToggleVehicleMod(vehicle, 22, prop) end,
+   ["neonColor"] = function(prop) VehicleNeonLightsColour(vehicle, prop[1], prop[2], prop[3]) end,
+   ["oilLevel"] = function(prop) VehicleOilLevel(vehicle, prop) end,
+   ["pearlescentColor"] = function(prop) VehicleExtraColours(vehicle, prop, wheelColor) end,
+   ["plate"] = function(prop) VehicleNumberPlateText(vehicle, prop) end,
+   ["plateIndex"] = function(prop) VehicleNumberPlateTextIndex(vehicle, prop) end,
+   ["tankHealth"] = function(prop) VehiclePetrolTankHealth(vehicle, prop) end,
+   ["tyreSmokeColor"] = function(prop) VehicleTyreSmokeColor(vehicle, prop[1], prop[2], prop[3]) end,
+   ["wheelColor"] = function(prop) VehicleExtraColours(vehicle, prop or pearlescentColor, prop) end,
+   ["wheelSize"] = function(prop) VehicleWheelSize(vehicle, prop) end,
+   ["wheelWidth"] = function(prop) VehicleWheelWidth(vehicle, prop) end,
+   ["wheels"] = function(prop) VehicleWheelType(vehicle, prop) end,
+   ["windowTint"] = function(prop) VehicleWindowTint(vehicle, prop) end,
+   ["xenonColor"] = function(prop) VehicleXenonLightsColor(vehicle, prop) end,
+  }
+  if DoesEntityExist(vehicle) then
+   setVehicleModKit(vehicle, 0)
+   for k,v in pairs(props) do propNatives[k](v) end
+  end
  end,
- ["GetPlayers"] = function()
-  return GetActivePlayers()
- end,
- ["GetPeds"] = function(ignoreList)
-  local pedPool = GetGamePool('CPed')
-  local peds = {}
-  ignoreList = ignoreList or {}
-  for i = 1, #pedPool, 1 do
-   local found = false
-   for j = 1, #ignoreList, 1 do
-    if ignoreList[j] == pedPool[i] then
-     found = true
-    end
-   end
-   if not found then
-    peds[#peds + 1] = pedPool[i]
-   end
-  end
-  return peds
- end,
- ["GetClosestPed"] = function(coords, ignoreList)
-  local ped = PlayerPedId()
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
-  ignoreList = ignoreList or {}
-  local peds = ra93Core.functions.GetPeds(ignoreList)
-  local closestDistance = -1
-  local closestPed = -1
-  for i = 1, #peds, 1 do
-   local pedCoords = GetEntityCoords(peds[i])
-   local distance = #(pedCoords - coords)
-
-   if closestDistance == -1 or closestDistance > distance then
-    closestPed = peds[i]
-    closestDistance = distance
-   end
-  end
-  return closestPed, closestDistance
- end,
- ["GetClosestPlayer"] = function(coords)
-  local ped = PlayerPedId()
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
-  local closestPlayers = ra93Core.functions.GetPlayersFromCoords(coords)
-  local closestDistance = -1
-  local closestPlayer = -1
-  for i = 1, #closestPlayers, 1 do
-   if closestPlayers[i] ~= PlayerId() and closestPlayers[i] ~= -1 then
-    local pos = GetEntityCoords(GetPlayerPed(closestPlayers[i]))
-    local distance = #(pos - coords)
-
-    if closestDistance == -1 or closestDistance > distance then
-     closestPlayer = closestPlayers[i]
-     closestDistance = distance
-    end
-   end
-  end
-  return closestPlayer, closestDistance
- end,
- ["GetPlayersFromCoords"] = function(coords, distance)
-  local players = GetActivePlayers()
-  local ped = PlayerPedId()
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
-  distance = distance or 5
-  local closePlayers = {}
-  for _, player in pairs(players) do
-   local target = GetPlayerPed(player)
-   local targetCoords = GetEntityCoords(target)
-   local targetdistance = #(targetCoords - coords)
-   if targetdistance <= distance then
-    closePlayers[#closePlayers + 1] = player
-   end
-  end
-  return closePlayers
- end,
- ["GetClosestVehicle"] = function(coords)
-  local ped = PlayerPedId()
-  local vehicles = GetGamePool('CVehicle')
-  local closestDistance = -1
-  local closestVehicle = -1
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
+ ["spawnClear"] = function(coords, radius)
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(PlayerPedId()) end
+  local vehicles = GetGamePool("CVehicle")
+  local closeVeh = {}
   for i = 1, #vehicles, 1 do
    local vehicleCoords = GetEntityCoords(vehicles[i])
    local distance = #(vehicleCoords - coords)
-
-   if closestDistance == -1 or closestDistance > distance then
-    closestVehicle = vehicles[i]
-    closestDistance = distance
-   end
+   if distance <= radius then closeVeh[#closeVeh + 1] = vehicles[i] end
   end
-  return closestVehicle, closestDistance
+  if #closeVeh > 0 then return false end
+  return true
  end,
- ["GetClosestObject"] = function(coords)
+ ["spawnVehicle"] = function(model, cb, coords, isnetworked, teleportInto)
   local ped = PlayerPedId()
-  local objects = GetGamePool('CObject')
-  local closestDistance = -1
-  local closestObject = -1
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
-  for i = 1, #objects, 1 do
-   local objectCoords = GetEntityCoords(objects[i])
-   local distance = #(objectCoords - coords)
-   if closestDistance == -1 or closestDistance > distance then
-    closestObject = objects[i]
-    closestDistance = distance
-   end
-  end
-  return closestObject, closestDistance
- end,
- ["GetClosestBone"] = function(entity, list)
-  local playerCoords, bone, coords, distance = GetEntityCoords(PlayerPedId())
-  for _, element in pairs(list) do
-   local boneCoords = GetWorldPositionOfEntityBone(entity, element.id or element)
-   local boneDistance = #(playerCoords - boneCoords)
-   if not coords then
-    bone, coords, distance = element, boneCoords, boneDistance
-   elseif distance > boneDistance then
-    bone, coords, distance = element, boneCoords, boneDistance
-   end
-  end
-  if not bone then
-   bone = {id = GetEntityBoneIndexByName(entity, "bodyshell"), type = "remains", name = "bodyshell"}
-   coords = GetWorldPositionOfEntityBone(entity, bone.id)
-   distance = #(coords - playerCoords)
-  end
-  return bone, coords, distance
- end,
- ["GetBoneDistance"] = function(entity, boneType, boneIndex)
-  local bone
-  if boneType == 1 then
-   bone = GetPedBoneIndex(entity, boneIndex)
-  else
-   bone = GetEntityBoneIndexByName(entity, boneIndex)
-  end
-  local boneCoords = GetWorldPositionOfEntityBone(entity, bone)
-  local playerCoords = GetEntityCoords(PlayerPedId())
-  return #(boneCoords - playerCoords)
- end,
- ["GetPlate"] = function(vehicle)
-  if vehicle == 0 then return end
-  return ra93Core.shared.Trim(GetVehicleNumberPlateText(vehicle))
- end,
- ["GetVehicleLabel"] = function(vehicle)
-  if vehicle == nil or vehicle == 0 then return end
-  return GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)))
- end,
- ["GetVehicleProperties"] = function(vehicle)
-  if DoesEntityExist(vehicle) then
-   local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
-
-   local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
-   if GetIsVehiclePrimaryColourCustom(vehicle) then
-    local r, g, b = GetVehicleCustomPrimaryColour(vehicle)
-    colorPrimary = {r, g, b}
-   end
-
-   if GetIsVehicleSecondaryColourCustom(vehicle) then
-    local r, g, b = GetVehicleCustomSecondaryColour(vehicle)
-    colorSecondary = {r, g, b}
-   end
-
-   local extras = {}
-   for extraId = 0, 12 do
-    if DoesExtraExist(vehicle, extraId) then
-     local state = IsVehicleExtraTurnedOn(vehicle, extraId) == 1
-     extras[tostring(extraId)] = state
-    end
-   end
-
-   local modLivery = GetVehicleMod(vehicle, 48)
-   if GetVehicleMod(vehicle, 48) == -1 and GetVehicleLivery(vehicle) ~= 0 then
-    modLivery = GetVehicleLivery(vehicle)
-   end
-
-   local tireHealth = {}
-   for i = 0, 3 do
-    tireHealth[i] = GetVehicleWheelHealth(vehicle, i)
-   end
-
-   local tireBurstState = {}
-   for i = 0, 5 do
-      tireBurstState[i] = IsVehicleTyreBurst(vehicle, i, false)
-   end
-
-   local tireBurstCompletely = {}
-   for i = 0, 5 do
-    tireBurstCompletely[i] = IsVehicleTyreBurst(vehicle, i, true)
-   end
-
-   local windowStatus = {}
-   for i = 0, 7 do
-    windowStatus[i] = IsVehicleWindowIntact(vehicle, i) == 1
-   end
-
-   local doorStatus = {}
-   for i = 0, 5 do
-    doorStatus[i] = IsVehicleDoorDamaged(vehicle, i) == 1
-   end
-
-   return {
-    model = GetEntityModel(vehicle),
-    plate = ra93Core.functions.GetPlate(vehicle),
-    plateIndex = GetVehicleNumberPlateTextIndex(vehicle),
-    bodyHealth = ra93Core.shared.Round(GetVehicleBodyHealth(vehicle), 0.1),
-    engineHealth = ra93Core.shared.Round(GetVehicleEngineHealth(vehicle), 0.1),
-    tankHealth = ra93Core.shared.Round(GetVehiclePetrolTankHealth(vehicle), 0.1),
-    fuelLevel = ra93Core.shared.Round(GetVehicleFuelLevel(vehicle), 0.1),
-    dirtLevel = ra93Core.shared.Round(GetVehicleDirtLevel(vehicle), 0.1),
-    oilLevel = ra93Core.shared.Round(GetVehicleOilLevel(vehicle), 0.1),
-    color1 = colorPrimary,
-    color2 = colorSecondary,
-    pearlescentColor = pearlescentColor,
-    dashboardColor = GetVehicleDashboardColour(vehicle),
-    wheelColor = wheelColor,
-    wheels = GetVehicleWheelType(vehicle),
-    wheelSize = GetVehicleWheelSize(vehicle),
-    wheelWidth = GetVehicleWheelWidth(vehicle),
-    tireHealth = tireHealth,
-    tireBurstState = tireBurstState,
-    tireBurstCompletely = tireBurstCompletely,
-    windowTint = GetVehicleWindowTint(vehicle),
-    windowStatus = windowStatus,
-    doorStatus = doorStatus,
-    xenonColor = GetVehicleXenonLightsColour(vehicle),
-    neonEnabled = {
-     IsVehicleNeonLightEnabled(vehicle, 0),
-     IsVehicleNeonLightEnabled(vehicle, 1),
-     IsVehicleNeonLightEnabled(vehicle, 2),
-     IsVehicleNeonLightEnabled(vehicle, 3)
-    },
-    neonColor = table.pack(GetVehicleNeonLightsColour(vehicle)),
-    headlightColor = GetVehicleHeadlightsColour(vehicle),
-    interiorColor = GetVehicleInteriorColour(vehicle),
-    extras = extras,
-    tyreSmokeColor = table.pack(GetVehicleTyreSmokeColor(vehicle)),
-    modSpoilers = GetVehicleMod(vehicle, 0),
-    modFrontBumper = GetVehicleMod(vehicle, 1),
-    modRearBumper = GetVehicleMod(vehicle, 2),
-    modSideSkirt = GetVehicleMod(vehicle, 3),
-    modExhaust = GetVehicleMod(vehicle, 4),
-    modFrame = GetVehicleMod(vehicle, 5),
-    modGrille = GetVehicleMod(vehicle, 6),
-    modHood = GetVehicleMod(vehicle, 7),
-    modFender = GetVehicleMod(vehicle, 8),
-    modRightFender = GetVehicleMod(vehicle, 9),
-    modRoof = GetVehicleMod(vehicle, 10),
-    modEngine = GetVehicleMod(vehicle, 11),
-    modBrakes = GetVehicleMod(vehicle, 12),
-    modTransmission = GetVehicleMod(vehicle, 13),
-    modHorns = GetVehicleMod(vehicle, 14),
-    modSuspension = GetVehicleMod(vehicle, 15),
-    modArmor = GetVehicleMod(vehicle, 16),
-    modKit17 = GetVehicleMod(vehicle, 17),
-    modTurbo = IsToggleModOn(vehicle, 18),
-    modKit19 = GetVehicleMod(vehicle, 19),
-    modSmokeEnabled = IsToggleModOn(vehicle, 20),
-    modKit21 = GetVehicleMod(vehicle, 21),
-    modXenon = IsToggleModOn(vehicle, 22),
-    modFrontWheels = GetVehicleMod(vehicle, 23),
-    modBackWheels = GetVehicleMod(vehicle, 24),
-    modCustomTiresF = GetVehicleModVariation(vehicle, 23),
-    modCustomTiresR = GetVehicleModVariation(vehicle, 24),
-    modPlateHolder = GetVehicleMod(vehicle, 25),
-    modVanityPlate = GetVehicleMod(vehicle, 26),
-    modTrimA = GetVehicleMod(vehicle, 27),
-    modOrnaments = GetVehicleMod(vehicle, 28),
-    modDashboard = GetVehicleMod(vehicle, 29),
-    modDial = GetVehicleMod(vehicle, 30),
-    modDoorSpeaker = GetVehicleMod(vehicle, 31),
-    modSeats = GetVehicleMod(vehicle, 32),
-    modSteeringWheel = GetVehicleMod(vehicle, 33),
-    modShifterLeavers = GetVehicleMod(vehicle, 34),
-    modAPlate = GetVehicleMod(vehicle, 35),
-    modSpeakers = GetVehicleMod(vehicle, 36),
-    modTrunk = GetVehicleMod(vehicle, 37),
-    modHydrolic = GetVehicleMod(vehicle, 38),
-    modEngineBlock = GetVehicleMod(vehicle, 39),
-    modAirFilter = GetVehicleMod(vehicle, 40),
-    modStruts = GetVehicleMod(vehicle, 41),
-    modArchCover = GetVehicleMod(vehicle, 42),
-    modAerials = GetVehicleMod(vehicle, 43),
-    modTrimB = GetVehicleMod(vehicle, 44),
-    modTank = GetVehicleMod(vehicle, 45),
-    modWindows = GetVehicleMod(vehicle, 46),
-    modKit47 = GetVehicleMod(vehicle, 47),
-    modLivery = modLivery,
-    modKit49 = GetVehicleMod(vehicle, 49),
-    liveryRoof = GetVehicleRoofLivery(vehicle),
-   }
-  else
-   return
-  end
- end,
- ["GetStreetNametAtCoords"] = function(coords)
-  local streetname1, streetname2 = GetStreetNameAtCoord(coords.x, coords.y, coords.z)
-  return { main = GetStreetNameFromHashKey(streetname1), cross = GetStreetNameFromHashKey(streetname2) }
- end,
- ["GetZoneAtCoords"] = function(coords)
-  return GetLabelText(GetNameOfZone(coords))
- end,
- ["GetCardinalDirection"] = function(entity)
-  entity = DoesEntityExist(entity) and entity or PlayerPedId()
-  if DoesEntityExist(entity) then
-   local heading = GetEntityHeading(entity)
-   if ((heading >= 0 and heading < 45) or (heading >= 315 and heading < 360)) then
-    return "North"
-   elseif (heading >= 45 and heading < 135) then
-    return "West"
-   elseif (heading >= 135 and heading < 225) then
-    return "South"
-   elseif (heading >= 225 and heading < 315) then
-    return "East"
-   end
-  else
-   return "Cardinal Direction Error"
-  end
- end,
- ["GetCurrentTime"] = function()
-  local obj = {}
-  obj.min = GetClockMinutes()
-  obj.hour = GetClockHours()
-
-  if obj.hour <= 12 then
-   obj.ampm = "AM"
-  elseif obj.hour >= 13 then
-   obj.ampm = "PM"
-   obj.formattedHour = obj.hour - 12
-  end
-
-  if obj.min <= 9 then
-   obj.formattedMin = "0" .. obj.min
-  end
-
-  return obj
- end,
- ["GetGroundZCoord"] = function(coords)
-  if not coords then return end
-
-  local retval, groundZ = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z, 0)
-  if retval then
-   return vector3(coords.x, coords.y, groundZ)
-  else
-   print('Couldn\'t find Ground Z Coordinates given 3D Coordinates')
-   print(coords)
-   return coords
-  end
- end,
- ["AttachProp"] = function(ped, model, boneId, x, y, z, xR, yR, zR, vertex)
-  local modelHash = type(model) == 'string' and GetHashKey(model) or model
-  local bone = GetPedBoneIndex(ped, boneId)
-  ra93Core.functions.LoadModel(modelHash)
-  local prop = CreateObject(modelHash, 1.0, 1.0, 1.0, 1, 1, 0)
-  AttachEntityToEntity(prop, ped, bone, x, y, z, xR, yR, zR, 1, 1, 0, 1, not vertex and 2 or 0, 1)
-  SetModelAsNoLongerNeeded(modelHash)
-  return prop
- end,
- ["SpawnVehicle"] = function(model, cb, coords, isnetworked, teleportInto)
-  local ped = PlayerPedId()
-  model = type(model) == 'string' and GetHashKey(model) or model
+  model = type(model) == "string" and GetHashKey(model) or model
   if not IsModelInCdimage(model) then return end
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(ped)
-  end
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(ped) end
   isnetworked = isnetworked == nil or isnetworked
-  ra93Core.functions.LoadModel(model)
+  Ra93Core.functions.loadModel(model)
   local veh = CreateVehicle(model, coords.x, coords.y, coords.z, coords.w, isnetworked, false)
   local netid = NetworkGetNetworkIdFromEntity(veh)
   SetVehicleHasBeenOwnedByPlayer(veh, true)
   SetNetworkIdCanMigrate(netid, true)
   SetVehicleNeedsToBeHotwired(veh, false)
-  SetVehRadioStation(veh, 'OFF')
+  SetVehRadioStation(veh, "OFF")
   SetVehicleFuelLevel(veh, 100.0)
   SetModelAsNoLongerNeeded(model)
   if teleportInto then TaskWarpPedIntoVehicle(PlayerPedId(), veh, -1) end
   if cb then cb(veh) end
  end,
- ["DeleteVehicle"] = function(vehicle)
-  SetEntityAsMissionEntity(vehicle, true, true)
-  DeleteVehicle(vehicle)
+ ["triggerCallback"] = function(name, cb, ...)
+  Ra93Core.serverCallbacks[name] = cb
+  TriggerServerEvent("Ra93Core:server:triggerCallback", name, ...)
  end,
- ["SpawnClear"] = function(coords, radius)
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(PlayerPedId())
-  end
-  local vehicles = GetGamePool('CVehicle')
-  local closeVeh = {}
-  for i = 1, #vehicles, 1 do
-   local vehicleCoords = GetEntityCoords(vehicles[i])
-   local distance = #(vehicleCoords - coords)
-   if distance <= radius then
-    closeVeh[#closeVeh + 1] = vehicles[i]
-   end
-  end
-  if #closeVeh > 0 then return false end
-  return true
+ ["triggerClientCallback"] = function(name, cb, ...)
+  if not Ra93Core.clientCallBacks[name] then return end
+  Ra93Core.clientCallBacks[name](cb, ...)
  end,
- ["SetVehicleProperties"] = function(vehicle, props)
-  if DoesEntityExist(vehicle) then
-   if props.extras then
-    for id, enabled in pairs(props.extras) do
-     if enabled then
-      SetVehicleExtra(vehicle, tonumber(id), 0)
-     else
-      SetVehicleExtra(vehicle, tonumber(id), 1)
-     end
-    end
-   end
-
-   local colorPrimary, colorSecondary = GetVehicleColours(vehicle)
-   local pearlescentColor, wheelColor = GetVehicleExtraColours(vehicle)
-   SetVehicleModKit(vehicle, 0)
-   if props.plate then
-    SetVehicleNumberPlateText(vehicle, props.plate)
-   end
-   if props.plateIndex then
-    SetVehicleNumberPlateTextIndex(vehicle, props.plateIndex)
-   end
-   if props.bodyHealth then
-    SetVehicleBodyHealth(vehicle, props.bodyHealth + 0.0)
-   end
-   if props.engineHealth then
-    SetVehicleEngineHealth(vehicle, props.engineHealth + 0.0)
-   end
-   if props.tankHealth then
-    SetVehiclePetrolTankHealth(vehicle, props.tankHealth)
-   end
-   if props.fuelLevel then
-    SetVehicleFuelLevel(vehicle, props.fuelLevel + 0.0)
-   end
-   if props.dirtLevel then
-    SetVehicleDirtLevel(vehicle, props.dirtLevel + 0.0)
-   end
-   if props.oilLevel then
-    SetVehicleOilLevel(vehicle, props.oilLevel)
-   end
-   if props.color1 then
-    if type(props.color1) == "number" then
-     SetVehicleColours(vehicle, props.color1, colorSecondary)
-    else
-     SetVehicleCustomPrimaryColour(vehicle, props.color1[1], props.color1[2], props.color1[3])
-    end
-   end
-   if props.color2 then
-    if type(props.color2) == "number" then
-     SetVehicleColours(vehicle, props.color1 or colorPrimary, props.color2)
-    else
-     SetVehicleCustomSecondaryColour(vehicle, props.color2[1], props.color2[2], props.color2[3])
-    end
-   end
-   if props.pearlescentColor then
-    SetVehicleExtraColours(vehicle, props.pearlescentColor, wheelColor)
-   end
-   if props.interiorColor then
-    SetVehicleInteriorColor(vehicle, props.interiorColor)
-   end
-   if props.dashboardColor then
-    SetVehicleDashboardColour(vehicle, props.dashboardColor)
-   end
-   if props.wheelColor then
-    SetVehicleExtraColours(vehicle, props.pearlescentColor or pearlescentColor, props.wheelColor)
-   end
-   if props.wheels then
-    SetVehicleWheelType(vehicle, props.wheels)
-   end
-   if props.tireHealth then
-    for wheelIndex, health in pairs(props.tireHealth) do
-     SetVehicleWheelHealth(vehicle, wheelIndex, health)
-    end
-   end
-   if props.tireBurstState then
-    for wheelIndex, burstState in pairs(props.tireBurstState) do
-     if burstState then
-      SetVehicleTyreBurst(vehicle, tonumber(wheelIndex), false, 1000.0)
-     end
-    end
-   end
-   if props.tireBurstCompletely then
-    for wheelIndex, burstState in pairs(props.tireBurstCompletely) do
-     if burstState then
-      SetVehicleTyreBurst(vehicle, tonumber(wheelIndex), true, 1000.0)
-     end
-    end
-   end
-   if props.windowTint then
-    SetVehicleWindowTint(vehicle, props.windowTint)
-   end
-   if props.windowStatus then
-    for windowIndex, smashWindow in pairs(props.windowStatus) do
-     if not smashWindow then SmashVehicleWindow(vehicle, windowIndex) end
-    end
-   end
-   if props.doorStatus then
-    for doorIndex, breakDoor in pairs(props.doorStatus) do
-     if breakDoor then
-      SetVehicleDoorBroken(vehicle, tonumber(doorIndex), true)
-     end
-    end
-   end
-   if props.neonEnabled then
-    SetVehicleNeonLightEnabled(vehicle, 0, props.neonEnabled[1])
-    SetVehicleNeonLightEnabled(vehicle, 1, props.neonEnabled[2])
-    SetVehicleNeonLightEnabled(vehicle, 2, props.neonEnabled[3])
-    SetVehicleNeonLightEnabled(vehicle, 3, props.neonEnabled[4])
-   end
-   if props.neonColor then
-    SetVehicleNeonLightsColour(vehicle, props.neonColor[1], props.neonColor[2], props.neonColor[3])
-   end
-   if props.headlightColor then
-    SetVehicleHeadlightsColour(vehicle, props.headlightColor)
-   end
-   if props.interiorColor then
-    SetVehicleInteriorColour(vehicle, props.interiorColor)
-   end
-   if props.wheelSize then
-    SetVehicleWheelSize(vehicle, props.wheelSize)
-   end
-   if props.wheelWidth then
-    SetVehicleWheelWidth(vehicle, props.wheelWidth)
-   end
-   if props.tyreSmokeColor then
-    SetVehicleTyreSmokeColor(vehicle, props.tyreSmokeColor[1], props.tyreSmokeColor[2], props.tyreSmokeColor[3])
-   end
-   if props.modSpoilers then
-    SetVehicleMod(vehicle, 0, props.modSpoilers, false)
-   end
-   if props.modFrontBumper then
-    SetVehicleMod(vehicle, 1, props.modFrontBumper, false)
-   end
-   if props.modRearBumper then
-    SetVehicleMod(vehicle, 2, props.modRearBumper, false)
-   end
-   if props.modSideSkirt then
-    SetVehicleMod(vehicle, 3, props.modSideSkirt, false)
-   end
-   if props.modExhaust then
-    SetVehicleMod(vehicle, 4, props.modExhaust, false)
-   end
-   if props.modFrame then
-    SetVehicleMod(vehicle, 5, props.modFrame, false)
-   end
-   if props.modGrille then
-    SetVehicleMod(vehicle, 6, props.modGrille, false)
-   end
-   if props.modHood then
-    SetVehicleMod(vehicle, 7, props.modHood, false)
-   end
-   if props.modFender then
-    SetVehicleMod(vehicle, 8, props.modFender, false)
-   end
-   if props.modRightFender then
-    SetVehicleMod(vehicle, 9, props.modRightFender, false)
-   end
-   if props.modRoof then
-    SetVehicleMod(vehicle, 10, props.modRoof, false)
-   end
-   if props.modEngine then
-    SetVehicleMod(vehicle, 11, props.modEngine, false)
-   end
-   if props.modBrakes then
-    SetVehicleMod(vehicle, 12, props.modBrakes, false)
-   end
-   if props.modTransmission then
-    SetVehicleMod(vehicle, 13, props.modTransmission, false)
-   end
-   if props.modHorns then
-    SetVehicleMod(vehicle, 14, props.modHorns, false)
-   end
-   if props.modSuspension then
-    SetVehicleMod(vehicle, 15, props.modSuspension, false)
-   end
-   if props.modArmor then
-    SetVehicleMod(vehicle, 16, props.modArmor, false)
-   end
-   if props.modKit17 then
-    SetVehicleMod(vehicle, 17, props.modKit17, false)
-   end
-   if props.modTurbo then
-    ToggleVehicleMod(vehicle, 18, props.modTurbo)
-   end
-   if props.modKit19 then
-    SetVehicleMod(vehicle, 19, props.modKit19, false)
-   end
-   if props.modSmokeEnabled then
-    ToggleVehicleMod(vehicle, 20, props.modSmokeEnabled)
-   end
-   if props.modKit21 then
-    SetVehicleMod(vehicle, 21, props.modKit21, false)
-   end
-   if props.modXenon then
-    ToggleVehicleMod(vehicle, 22, props.modXenon)
-   end
-   if props.xenonColor then
-    SetVehicleXenonLightsColor(vehicle, props.xenonColor)
-   end
-   if props.modFrontWheels then
-    SetVehicleMod(vehicle, 23, props.modFrontWheels, false)
-   end
-   if props.modBackWheels then
-    SetVehicleMod(vehicle, 24, props.modBackWheels, false)
-   end
-   if props.modCustomTiresF then
-    SetVehicleMod(vehicle, 23, props.modFrontWheels, props.modCustomTiresF)
-   end
-   if props.modCustomTiresR then
-    SetVehicleMod(vehicle, 24, props.modBackWheels, props.modCustomTiresR)
-   end
-   if props.modPlateHolder then
-    SetVehicleMod(vehicle, 25, props.modPlateHolder, false)
-   end
-   if props.modVanityPlate then
-    SetVehicleMod(vehicle, 26, props.modVanityPlate, false)
-   end
-   if props.modTrimA then
-    SetVehicleMod(vehicle, 27, props.modTrimA, false)
-   end
-   if props.modOrnaments then
-    SetVehicleMod(vehicle, 28, props.modOrnaments, false)
-   end
-   if props.modDashboard then
-    SetVehicleMod(vehicle, 29, props.modDashboard, false)
-   end
-   if props.modDial then
-    SetVehicleMod(vehicle, 30, props.modDial, false)
-   end
-   if props.modDoorSpeaker then
-    SetVehicleMod(vehicle, 31, props.modDoorSpeaker, false)
-   end
-   if props.modSeats then
-    SetVehicleMod(vehicle, 32, props.modSeats, false)
-   end
-   if props.modSteeringWheel then
-    SetVehicleMod(vehicle, 33, props.modSteeringWheel, false)
-   end
-   if props.modShifterLeavers then
-    SetVehicleMod(vehicle, 34, props.modShifterLeavers, false)
-   end
-   if props.modAPlate then
-    SetVehicleMod(vehicle, 35, props.modAPlate, false)
-   end
-   if props.modSpeakers then
-    SetVehicleMod(vehicle, 36, props.modSpeakers, false)
-   end
-   if props.modTrunk then
-    SetVehicleMod(vehicle, 37, props.modTrunk, false)
-   end
-   if props.modHydrolic then
-    SetVehicleMod(vehicle, 38, props.modHydrolic, false)
-   end
-   if props.modEngineBlock then
-    SetVehicleMod(vehicle, 39, props.modEngineBlock, false)
-   end
-   if props.modAirFilter then
-    SetVehicleMod(vehicle, 40, props.modAirFilter, false)
-   end
-   if props.modStruts then
-    SetVehicleMod(vehicle, 41, props.modStruts, false)
-   end
-   if props.modArchCover then
-    SetVehicleMod(vehicle, 42, props.modArchCover, false)
-   end
-   if props.modAerials then
-    SetVehicleMod(vehicle, 43, props.modAerials, false)
-   end
-   if props.modTrimB then
-    SetVehicleMod(vehicle, 44, props.modTrimB, false)
-   end
-   if props.modTank then
-    SetVehicleMod(vehicle, 45, props.modTank, false)
-   end
-   if props.modWindows then
-    SetVehicleMod(vehicle, 46, props.modWindows, false)
-   end
-   if props.modKit47 then
-    SetVehicleMod(vehicle, 47, props.modKit47, false)
-   end
-   if props.modLivery then
-    SetVehicleMod(vehicle, 48, props.modLivery, false)
-    SetVehicleLivery(vehicle, props.modLivery)
-   end
-   if props.modKit49 then
-    SetVehicleMod(vehicle, 49, props.modKit49, false)
-   end
-   if props.liveryRoof then
-    SetVehicleRoofLivery(vehicle, props.liveryRoof)
-   end
-  end
- end,
- ["LoadParticleDictionary"] = function(dictionary)
-  if HasNamedPtfxAssetLoaded(dictionary) then return end
-  RequestNamedPtfxAsset(dictionary)
-  while not HasNamedPtfxAssetLoaded(dictionary) do
-   Wait(0)
-  end
- end,
- ["StartParticleAtCoord"] = function(dict, ptName, looped, coords, rot, scale, alpha, color, duration)
-  if coords then
-   coords = type(coords) == 'table' and vec3(coords.x, coords.y, coords.z) or coords
-  else
-   coords = GetEntityCoords(PlayerPedId())
-  end
-  ra93Core.functions.LoadParticleDictionary(dict)
+ ["startParticleAtCoord"] = function(dict, ptName, looped, coords, rot, scale, alpha, color, duration)
+  if coords then coords = type(coords) == "table" and vec3(coords.x, coords.y, coords.z) or coords
+  else coords = GetEntityCoords(PlayerPedId()) end
+  Ra93Core.functions.loadParticleDictionary(dict)
   UseParticleFxAssetNextCall(dict)
   SetPtfxAssetNextCall(dict)
   local particleHandle
   if looped then
    particleHandle = StartParticleFxLoopedAtCoord(ptName, coords.x, coords.y, coords.z, rot.x, rot.y, rot.z, scale or 1.0)
-   if color then
-    SetParticleFxLoopedColour(particleHandle, color.r, color.g, color.b, false)
-   end
+   if color then SetParticleFxLoopedColour(particleHandle, color.r, color.g, color.b, false) end
    SetParticleFxLoopedAlpha(particleHandle, alpha or 10.0)
    if duration then
     Wait(duration)
@@ -888,34 +593,22 @@ ra93Core.functions = {
    end
   else
    SetParticleFxNonLoopedAlpha(alpha or 10.0)
-   if color then
-    SetParticleFxNonLoopedColour(color.r, color.g, color.b)
-   end
+   if color then SetParticleFxNonLoopedColour(color.r, color.g, color.b) end
    StartParticleFxNonLoopedAtCoord(ptName, coords.x, coords.y, coords.z, rot.x, rot.y, rot.z, scale or 1.0)
   end
   return particleHandle
  end,
- ["StartParticleOnEntity"] = function(dict, ptName, looped, entity, bone, offset, rot, scale, alpha, color, evolution, duration)
-  ra93Core.functions.LoadParticleDictionary(dict)
+ ["startParticleOnEntity"] = function(dict, ptName, looped, entity, bone, offset, rot, scale, alpha, color, evolution, duration)
+  Ra93Core.functions.loadParticleDictionary(dict)
   UseParticleFxAssetNextCall(dict)
   local particleHandle, boneID
-  if bone and GetEntityType(entity) == 1 then
-   boneID = GetPedBoneIndex(entity, bone)
-  elseif bone then
-   boneID = GetEntityBoneIndexByName(entity, bone)
-  end
+  if bone and GetEntityType(entity) == 1 then boneID = GetPedBoneIndex(entity, bone)
+  elseif bone then boneID = GetEntityBoneIndexByName(entity, bone) end
   if looped then
-   if bone then
-    particleHandle = StartParticleFxLoopedOnEntityBone(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, boneID, scale)
-   else
-    particleHandle = StartParticleFxLoopedOnEntity(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, scale)
-   end
-   if evolution then
-    SetParticleFxLoopedEvolution(particleHandle, evolution.name, evolution.amount, false)
-   end
-   if color then
-    SetParticleFxLoopedColour(particleHandle, color.r, color.g, color.b, false)
-   end
+   if bone then particleHandle = StartParticleFxLoopedOnEntityBone(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, boneID, scale)
+   else particleHandle = StartParticleFxLoopedOnEntity(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, scale) end
+   if evolution then SetParticleFxLoopedEvolution(particleHandle, evolution.name, evolution.amount, false) end
+   if color then SetParticleFxLoopedColour(particleHandle, color.r, color.g, color.b, false) end
    SetParticleFxLoopedAlpha(particleHandle, alpha)
    if duration then
     Wait(duration)
@@ -923,41 +616,10 @@ ra93Core.functions = {
    end
   else
    SetParticleFxNonLoopedAlpha(alpha or 10.0)
-   if color then
-    SetParticleFxNonLoopedColour(color.r, color.g, color.b)
-   end
-   if bone then
-    StartParticleFxNonLoopedOnPedBone(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, boneID, scale)
-   else
-    StartParticleFxNonLoopedOnEntity(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, scale)
-   end
+   if color then SetParticleFxNonLoopedColour(color.r, color.g, color.b) end
+   if bone then StartParticleFxNonLoopedOnPedBone(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, boneID, scale)
+   else StartParticleFxNonLoopedOnEntity(ptName, entity, offset.x, offset.y, offset.z, rot.x, rot.y, rot.z, scale) end
   end
   return particleHandle
  end
 }
-
-local drawText = function(action, text, position)
- local data
- if type(position) ~= "string" then position = "left" end
- if text then
-  data = {
-   ["text"] = text,
-   ["position"] = position
-  }
- end
- SendNUIMessage({
-  action = action,
-  data = data
- })
-end
-
-local keyPressed = function()
- CreateThread(function()
-  drawText("KEY_PRESSED", false, false)
-  Wait(500)
-  drawText("HIDE_TEXT", false, false)
- end)
-end
-
-exports('drawText', drawText)
-exports('keyPressed', keyPressed)

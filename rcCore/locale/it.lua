@@ -39,9 +39,9 @@ error = {
   tp = {
    help = 'TP su ID Gioctore o Coordinate (Solo Admin)',
    params = {
-    x = {name = 'id/x', help = 'ID Giocatore o Posizione X'},
-    y = {name = 'y', help = 'Posizione Y'},
-    z = {name = 'z', help = 'Posizione Z'}
+ x = {name = 'id/x', help = 'ID Giocatore o Posizione X'},
+ y = {name = 'y', help = 'Posizione Y'},
+ z = {name = 'z', help = 'Posizione Z'}
    }
   },
   tpm = {help = 'TP al Marker (Solo Admin)'},
@@ -49,25 +49,25 @@ error = {
   addpermission = {
    help = 'Dai i permessi ad un Giocatore (Solo God)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    permission = {name = 'permessi', help = 'Livello Permessi'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ permission = {name = 'permessi', help = 'Livello Permessi'}
    }
   },
   removepermission = {
    help = 'Rimuovi i permessi ad un Giocatore (Solo God)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    permission = {name = 'permessi', help = 'Livello Permessi'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ permission = {name = 'permessi', help = 'Livello Permessi'}
    }
   },
   openserver = {help = 'Apri il server a tutti (Solo Admin)'},
   closeserver = {
    help = 'Chidi il server e rendilo accessibile solo a chi ha i permessi (Solo Admin)',
    params = {
-    reason = {
-     name = 'motivo',
-     help = 'Motivo di chiusura del server (opzionale)'
-    }
+ reason = {
+  name = 'motivo',
+  help = 'Motivo di chiusura del server (opzionale)'
+ }
    }
   },
   car = {
@@ -78,41 +78,41 @@ error = {
   givemoney = {
    help = 'Dai soldi ad un Giocatore (Solo Admin)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    moneytype = {
-     name = 'tipo',
-     help = 'Tipo di soldi (cash, bank, crypto)'
-    },
-    amount = {name = 'importo', help = 'Importo'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ moneytype = {
+  name = 'tipo',
+  help = 'Tipo di soldi (cash, bank, crypto)'
+ },
+ amount = {name = 'importo', help = 'Importo'}
    }
   },
   setmoney = {
    help = 'Imposta i soldi ad un Giocatore (Solo Admin)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    moneytype = {
-     name = 'tipo',
-     help = 'Tipo di soldi (cash, bank, crypto)'
-    },
-    amount = {name = 'importo', help = 'Importo'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ moneytype = {
+  name = 'tipo',
+  help = 'Tipo di soldi (cash, bank, crypto)'
+ },
+ amount = {name = 'importo', help = 'Importo'}
    }
   },
   job = {help = 'Controlla il tuo Lavoro'},
   setjob = {
    help = 'Imposta Lavoro ad un Giocatore (Solo Admin)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    job = {name = 'lavoro', help = 'Nome Lavoro'},
-    grade = {name = 'grado', help = 'Grado'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ job = {name = 'lavoro', help = 'Nome Lavoro'},
+ grade = {name = 'grado', help = 'Grado'}
    }
   },
   gang = {help = 'Controlla la tua Fazione'},
   setgang = {
    help = 'Imposta Fazione ad un Giocatore (Solo Admin)',
    params = {
-    id = {name = 'id', help = 'ID Giocatore'},
-    gang = {name = 'fazione', help = 'Nome Fazione'},
-    grade = {name = 'grado', help = 'Grado'}
+ id = {name = 'id', help = 'ID Giocatore'},
+ gang = {name = 'fazione', help = 'Nome Fazione'},
+ grade = {name = 'grado', help = 'Grado'}
    }
   },
   ooc = {help = 'Messaggio OOC'},

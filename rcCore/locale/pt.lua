@@ -41,9 +41,9 @@ local Translations = {
   tp = {
    help = 'TP para jogador ou coordenadas (Apenas Admin)',
    params = {
-    x = { name = 'id/x', help = 'ID do jogador ou posição X'},
-    y = { name = 'y', help = 'Posição Y'},
-    z = { name = 'z', help = 'Posição Z'},
+ x = { name = 'id/x', help = 'ID do jogador ou posição X'},
+ y = { name = 'y', help = 'Posição Y'},
+ z = { name = 'z', help = 'Posição Z'},
    },
   },
   tpm = { help = 'TP para Marcador (Apenas Admin)' },
@@ -51,70 +51,70 @@ local Translations = {
   addpermission = {
    help = 'Dar Permissões a jogador (Apenas God)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    permission = { name = 'permission', help = 'Nivel de permissão' },
+ id = { name = 'id', help = 'ID do jogador' },
+ permission = { name = 'permission', help = 'Nivel de permissão' },
    },
   },
   removepermission = {
    help = 'Remover permissão de jogador (Apenas God)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    permission = { name = 'permission', help = 'Nivel de permissão' },
+ id = { name = 'id', help = 'ID do jogador' },
+ permission = { name = 'permission', help = 'Nivel de permissão' },
    },
   },
   openserver = { help = 'Abrir o Servidor para todos (Apenas Admin)' },
   closeserver = {
    help = 'Fechar o servidor para todos excepto Admins (Apenas Admin)',
    params = {
-    reason = { name = 'reason', help = 'Razão para fechar(opcional)' },
+ reason = { name = 'reason', help = 'Razão para fechar(opcional)' },
    },
   },
   car = {
    help = 'Spawnar Veículo (Apenas Admin)',
    params = {
-    model = { name = 'model', help = 'Modelo do veículo' },
+ model = { name = 'model', help = 'Modelo do veículo' },
    },
   },
   dv = { help = 'Apagar Veículo (Apenas Admin)' },
   givemoney = {
    help = 'Dar dinheiro a jogador (Apenas Admin)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    moneytype = { name = 'moneytype', help = 'Tipo (cash, bank, crypto)' },
-    amount = { name = 'amount', help = 'Quantidade de dinheiro' },
+ id = { name = 'id', help = 'ID do jogador' },
+ moneytype = { name = 'moneytype', help = 'Tipo (cash, bank, crypto)' },
+ amount = { name = 'amount', help = 'Quantidade de dinheiro' },
    },
   },
   setmoney = {
    help = 'Definir a quantia de dinheiro do jogador (Apenas Admin)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    moneytype = { name = 'moneytype', help = 'Tipo(cash, bank, crypto)' },
-    amount = { name = 'amount', help = 'Quantidade de dinheiro' },
+ id = { name = 'id', help = 'ID do jogador' },
+ moneytype = { name = 'moneytype', help = 'Tipo(cash, bank, crypto)' },
+ amount = { name = 'amount', help = 'Quantidade de dinheiro' },
    },
   },
   job = { help = 'Ver o teu trabalho' },
   setjob = {
    help = 'Definir o trabalho de 1 jogador (Apenas Admin)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    job = { name = 'job', help = 'Nome do trabalho' },
-    grade = { name = 'grade', help = 'Nivel do trabalho' },
+ id = { name = 'id', help = 'ID do jogador' },
+ job = { name = 'job', help = 'Nome do trabalho' },
+ grade = { name = 'grade', help = 'Nivel do trabalho' },
    },
   },
   gang = { help = 'Ver o teu Gang' },
   setgang = {
    help = 'Definir o Gang de um jogador (Apenas Admin)',
    params = {
-    id = { name = 'id', help = 'ID do jogador' },
-    gang = { name = 'gang', help = 'Nome do Gang' },
-    grade = { name = 'grade', help = 'Nível/ Posição no Gang' },
+ id = { name = 'id', help = 'ID do jogador' },
+ gang = { name = 'gang', help = 'Nome do Gang' },
+ grade = { name = 'grade', help = 'Nível/ Posição no Gang' },
    },
   },
   ooc = { help = 'Mensagem Chat em OOC' },
   me = {
    help = 'Mostrar Mensagem local',
    params = {
-    message = { name = 'message', help = 'Menssagem  a enviar' }
+ message = { name = 'message', help = 'Menssagem  a enviar' }
    },
   },
  },

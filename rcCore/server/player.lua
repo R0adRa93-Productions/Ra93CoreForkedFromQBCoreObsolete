@@ -1,953 +1,506 @@
-ra93Core.Players = {}
-ra93Core.Player = {}
-
--- On player login get their data or set defaults
--- Don't touch any of this unless you know what you are doing
--- Will cause major issues!
-
-function ra93Core.Player.Login(source, citizenid, newData)
- if source and source ~= '' then
-  if citizenid then
-   local license = ra93Core.functions.GetIdentifier(source, 'license')
-   local PlayerData = MySQL.prepare.await('SELECT * FROM players where citizenid = ?', { citizenid })
-   if PlayerData and license == PlayerData.license then
-    PlayerData.money = json.decode(PlayerData.money)
-    PlayerData.job = json.decode(PlayerData.job)
-    PlayerData.position = json.decode(PlayerData.position)
-    PlayerData.metadata = json.decode(PlayerData.metadata)
-    PlayerData.charinfo = json.decode(PlayerData.charinfo)
-    if PlayerData.gang then
-     PlayerData.gang = json.decode(PlayerData.gang)
-    else
-     PlayerData.gang = {}
-    end
-    ra93Core.Player.CheckPlayerData(source, PlayerData)
-   else
-    DropPlayer(source, Lang:t("info.exploit_dropped"))
-    TriggerEvent('qb-log:server:CreateLog', 'anticheat', 'Anti-Cheat', 'white', GetPlayerName(source) .. ' Has Been Dropped For Character Joining Exploit', false)
-   end
-  else
-   ra93Core.Player.CheckPlayerData(source, newData)
+Ra93Core.player = {
+ ["checkPlayerData"] = function(source, playerData)
+  playerData = playerData or {}
+  local Offline = true
+  if source then
+   playerData.source = source
+   playerData.license = playerData.license or Ra93Core.functions.getIdentifier(source, "license")
+   playerData.name = GetPlayerName(source)
+   Offline = false
   end
-  return true
- else
-  ra93Core.ShowError(GetCurrentResourceName(), 'ERROR ra93Core.PLAYER.LOGIN - NO SOURCE GIVEN!')
-  return false
- end
-end
-
-function ra93Core.Player.GetOfflinePlayer(citizenid)
- if citizenid then
-  local PlayerData = MySQL.Sync.prepare('SELECT * FROM players where citizenid = ?', {citizenid})
-  if PlayerData then
-   PlayerData.money = json.decode(PlayerData.money)
-   PlayerData.job = json.decode(PlayerData.job)
-   PlayerData.position = json.decode(PlayerData.position)
-   PlayerData.metadata = json.decode(PlayerData.metadata)
-   PlayerData.charinfo = json.decode(PlayerData.charinfo)
-   if PlayerData.gang then
-    PlayerData.gang = json.decode(PlayerData.gang)
-   else
-    PlayerData.gang = {}
-   end
-
-   return ra93Core.Player.CheckPlayerData(nil, PlayerData)
-  end
- end
- return nil
-end
-
-function ra93Core.Player.CheckPlayerData(source, PlayerData)
- PlayerData = PlayerData or {}
- local Offline = true
- if source then
-  PlayerData.source = source
-  PlayerData.license = PlayerData.license or ra93Core.functions.GetIdentifier(source, 'license')
-  PlayerData.name = GetPlayerName(source)
-  Offline = false
- end
-
- PlayerData.citizenid = PlayerData.citizenid or ra93Core.Player.CreateCitizenId()
- PlayerData.cid = PlayerData.cid or 1
- PlayerData.money = PlayerData.money or {}
- PlayerData.optin = PlayerData.optin or true
- for moneytype, startamount in pairs(ra93Core.config.Money.MoneyTypes) do
-  PlayerData.money[moneytype] = PlayerData.money[moneytype] or startamount
- end
-
- -- Charinfo
- PlayerData.charinfo = PlayerData.charinfo or {}
- PlayerData.charinfo.firstname = PlayerData.charinfo.firstname or 'Firstname'
- PlayerData.charinfo.lastname = PlayerData.charinfo.lastname or 'Lastname'
- PlayerData.charinfo.birthdate = PlayerData.charinfo.birthdate or '00-00-0000'
- PlayerData.charinfo.gender = PlayerData.charinfo.gender or 0
- PlayerData.charinfo.backstory = PlayerData.charinfo.backstory or 'placeholder backstory'
- PlayerData.charinfo.nationality = PlayerData.charinfo.nationality or 'USA'
- PlayerData.charinfo.phone = PlayerData.charinfo.phone or ra93Core.functions.CreatePhoneNumber()
- PlayerData.charinfo.account = PlayerData.charinfo.account or ra93Core.functions.CreateAccountNumber()
- -- Metadata
- PlayerData.metadata = PlayerData.metadata or {}
- PlayerData.metadata['hunger'] = PlayerData.metadata['hunger'] or 100
- PlayerData.metadata['thirst'] = PlayerData.metadata['thirst'] or 100
- PlayerData.metadata['stress'] = PlayerData.metadata['stress'] or 0
- PlayerData.metadata['isdead'] = PlayerData.metadata['isdead'] or false
- PlayerData.metadata['inlaststand'] = PlayerData.metadata['inlaststand'] or false
- PlayerData.metadata['armor'] = PlayerData.metadata['armor'] or 0
- PlayerData.metadata['ishandcuffed'] = PlayerData.metadata['ishandcuffed'] or false
- PlayerData.metadata['tracker'] = PlayerData.metadata['tracker'] or false
- PlayerData.metadata['injail'] = PlayerData.metadata['injail'] or 0
- PlayerData.metadata['jailitems'] = PlayerData.metadata['jailitems'] or {}
- PlayerData.metadata['status'] = PlayerData.metadata['status'] or {}
- PlayerData.metadata['phone'] = PlayerData.metadata['phone'] or {}
- PlayerData.metadata['fitbit'] = PlayerData.metadata['fitbit'] or {}
- PlayerData.metadata['commandbinds'] = PlayerData.metadata['commandbinds'] or {}
- PlayerData.metadata['bloodtype'] = PlayerData.metadata['bloodtype'] or ra93Core.config.Player.Bloodtypes[math.random(1, #ra93Core.config.Player.Bloodtypes)]
- PlayerData.metadata['dealerrep'] = PlayerData.metadata['dealerrep'] or 0
- PlayerData.metadata['craftingrep'] = PlayerData.metadata['craftingrep'] or 0
- PlayerData.metadata['attachmentcraftingrep'] = PlayerData.metadata['attachmentcraftingrep'] or 0
- PlayerData.metadata['currentapartment'] = PlayerData.metadata['currentapartment'] or nil
- PlayerData.metadata['jobhistory'] = PlayerData.metadata['jobhistory'] or {}
- PlayerData.metadata['ganghistory'] = PlayerData.metadata['ganghistory'] or {}
- PlayerData.metadata['jobs'] = PlayerData.metadata['jobs'] or {}
- PlayerData.metadata['gangs'] = PlayerData.metadata['gangs'] or {}
- PlayerData.metadata['jobrep'] = PlayerData.metadata['jobrep'] or {}
- PlayerData.metadata['gangrep'] = PlayerData.metadata['gangrep'] or {}
- PlayerData.metadata['callsign'] = PlayerData.metadata['callsign'] or 'NO CALLSIGN'
- PlayerData.metadata['fingerprint'] = PlayerData.metadata['fingerprint'] or ra93Core.Player.CreateFingerId()
- PlayerData.metadata['walletid'] = PlayerData.metadata['walletid'] or ra93Core.Player.CreateWalletId()
- PlayerData.metadata['criminalrecord'] = PlayerData.metadata['criminalrecord'] or {
-  ['hasRecord'] = false,
-  ['date'] = nil
- }
- PlayerData.metadata['rapsheet'] = PlayerData.metadata['rapsheet'] or {}
- PlayerData.metadata['licences'] = PlayerData.metadata['licences'] or {
-  ['driver'] = ra93Config.NewPlayerLicenses.driver,
-  ['business'] = ra93Config.NewPlayerLicenses.business,
-  ['weapon'] = ra93Config.NewPlayerLicenses.weapon
- }
- PlayerData.metadata['inside'] = PlayerData.metadata['inside'] or {
-  house = nil,
-  apartment = {
-   apartmentType = nil,
-   apartmentId = nil,
+  playerData.citizenid = playerData.citizenid or nil
+  playerData.cid = playerData.cid or 1
+  playerData.currency = playerData.currency or {}
+  playerData.optin = playerData.optin or true
+  for moneytype, startamount in pairs(Ra93Core.config.location.currency.moneyTypes) do playerData.currency[moneytype] = playerData.currency[moneytype] or startamount end
+  playerData.charinfo = playerData.charinfo or {}
+  playerData.charinfo.firstname = playerData.charinfo.firstname or "Firstname"
+  playerData.charinfo.lastname = playerData.charinfo.lastname or "Lastname"
+  playerData.charinfo.birthdate = playerData.charinfo.birthdate or "00-00-0000"
+  playerData.charinfo.gender = playerData.charinfo.gender or 0
+  playerData.charinfo.backstory = playerData.charinfo.backstory or "placeholder backstory"
+  playerData.charinfo.nationality = playerData.charinfo.nationality or Ra93Core.config.location.countryCode
+  playerData.charinfo.phone = playerData.charinfo.phone or Ra93Core.functions.createUniqueData("phone")
+  playerData.charinfo.account = playerData.charinfo.account or Ra93Core.functions.createUniqueData("account")
+  playerData.metadata = playerData.metadata or {}
+  playerData.metadata.hunger = playerData.metadata.hunger or 100
+  playerData.metadata.thirst = playerData.metadata.thirst or 100
+  playerData.metadata.stress = playerData.metadata.stress or 0
+  playerData.metadata.isdead = playerData.metadata.isdead or false
+  playerData.metadata.inlaststand = playerData.metadata.inlaststand or false
+  playerData.metadata.armor = playerData.metadata.armor or 0
+  playerData.metadata.ishandcuffed = playerData.metadata.ishandcuffed or false
+  playerData.metadata.tracker = playerData.metadata.tracker or false
+  playerData.metadata.injail = playerData.metadata.injail or 0
+  playerData.metadata.jailitems = playerData.metadata.jailitems or {}
+  playerData.metadata.status = playerData.metadata.status or {}
+  playerData.metadata.phone = playerData.metadata.phone or {}
+  playerData.metadata.fitbit = playerData.metadata.fitbit or {}
+  playerData.metadata.commandbinds = playerData.metadata.commandbinds or {}
+  playerData.metadata.bloodtype = playerData.metadata.bloodtype or Ra93Core.config.player.Bloodtypes[math.random(1, #Ra93Core.config.player.Bloodtypes)]
+  playerData.metadata.dealerrep = playerData.metadata.dealerrep or 0
+  playerData.metadata.craftingrep = playerData.metadata.craftingrep or 0
+  playerData.metadata.attachmentcraftingrep = playerData.metadata.attachmentcraftingrep or 0
+  playerData.metadata.currentapartment = playerData.metadata.currentapartment or nil
+  playerData.metadata.jobhistory = playerData.metadata.jobhistory or {}
+  playerData.metadata.ganghistory = playerData.metadata.ganghistory or {}
+  playerData.metadata.jobs = playerData.metadata.jobs or {}
+  playerData.metadata.gangs = playerData.metadata.gangs or {}
+  playerData.metadata.jobrep = playerData.metadata.jobrep or {}
+  playerData.metadata.gangrep = playerData.metadata.gangrep or {}
+  playerData.metadata.callsign = playerData.metadata.callsign or "NO CALLSIGN"
+  playerData.metadata.fingerprint = playerData.metadata.fingerprint or Ra93Core.functions.createUniqueData("fingerprint")
+  playerData.metadata.walletid = playerData.metadata.walletid or Ra93Core.functions.createUniqueData("walletid")
+  playerData.metadata.criminalrecord = playerData.metadata.criminalrecord or {
+   ["hasRecord"] = false,
+   ["date"] = nil
   }
- }
- PlayerData.metadata['phonedata'] = PlayerData.metadata['phonedata'] or {
-  SerialNumber = ra93Core.Player.CreateSerialNumber(),
-  InstalledApps = {},
- }
- PlayerData.metadata['deathinfo'] = PlayerData.metadata['deathinfo'] or {}
- -- Job
- if PlayerData.job and PlayerData.job.name and not ra93Core.shared.Jobs[PlayerData.job.name] then PlayerData.job = nil end
- PlayerData.job = PlayerData.job or {}
- PlayerData.job.name = PlayerData.job.name or 'unemployed'
- PlayerData.job.label = PlayerData.job.label or 'Civilian'
- PlayerData.job.payment = PlayerData.job.payment or ra93Core.shared.Jobs["unemployed"]["grades"]['0'].payment
- PlayerData.job.type = PlayerData.job.type or 'none'
- PlayerData.job.status = PlayerData.job.status or "available"
- if ra93Core.shared.ForceJobDefaultDutyAtLogin or PlayerData.job.onduty == nil then
-  PlayerData.job.onduty = ra93Core.shared.Jobs[PlayerData.job.name].defaultDuty
- end
- PlayerData.job.isboss = PlayerData.job.isboss or false
- PlayerData.job.grade = PlayerData.job.grade or {}
- PlayerData.job.grade.name = PlayerData.job.grade.name or 'Freelancer'
- PlayerData.job.grade.level = PlayerData.job.grade.level or '0'
- -- Gang
- if PlayerData.gang and PlayerData.gang.name and not ra93Core.shared.Gangs[PlayerData.gang.name] then PlayerData.gang = nil end
- PlayerData.gang = PlayerData.gang or {}
- PlayerData.gang.name = PlayerData.gang.name or 'none'
- PlayerData.gang.label = PlayerData.gang.label or 'No Gang Affiliaton'
- PlayerData.gang.status = PlayerData.gang.status or "available"
- PlayerData.gang.isboss = PlayerData.gang.isboss or false
- PlayerData.gang.grade = PlayerData.gang.grade or {}
- PlayerData.gang.grade.name = PlayerData.gang.grade.name or 'none'
- PlayerData.gang.grade.level = PlayerData.gang.grade.level or '0'
- -- Other
- PlayerData.position = PlayerData.position or ra93Config.defaultSpawn
- PlayerData.items = GetResourceState('qb-inventory') ~= 'missing' and exports['qb-inventory']:LoadInventory(PlayerData.source, PlayerData.citizenid) or {}
- return ra93Core.Player.CreatePlayer(PlayerData, Offline)
-end
-
--- On player logout
-
-function ra93Core.Player.Logout(source)
- TriggerClientEvent('ra93Core:Client:OnPlayerUnload', source)
- TriggerEvent('ra93Core:Server:OnPlayerUnload', source)
- TriggerClientEvent('ra93Core:Player:UpdatePlayerData', source)
- Wait(200)
- ra93Core.Players[source] = nil
-end
-
--- Create a new character
--- Don't touch any of this unless you know what you are doing
--- Will cause major issues!
-
-function ra93Core.Player.CreatePlayer(PlayerData, Offline, prevJob)
- local self = {}
- self.Functions = {}
- self.PlayerData = PlayerData
- self.Offline = Offline
-
- function self.Functions.UpdatePlayerData()
-  if self.Offline then return end -- Unsupported for Offline Players
-  TriggerEvent('ra93Core:Player:SetPlayerData', self.PlayerData)
-  TriggerClientEvent('ra93Core:Player:SetPlayerData', self.PlayerData.source, self.PlayerData)
- end
-
- function self.Functions.SetJob(job, grade)
-  job = job:lower()
-  grade = tostring(grade) or 0
-  if ra93Core.shared.QBJobsStatus then grade = tostring(grade) or "0" end
-  if not ra93Core.shared.Jobs[job] then return false end
-  self.PlayerData.job.name = job
-  self.PlayerData.job.label = ra93Core.shared.Jobs[job].label
-  self.PlayerData.job.onduty = ra93Core.shared.Jobs[job].defaultDuty
-  self.PlayerData.job.type = ra93Core.shared.Jobs[job].type or 'none'
-  self.PlayerData.job.status = "hired"
-  if ra93Core.shared.Jobs[job].grades[grade] then
-   local jobgrade = ra93Core.shared.Jobs[job].grades[grade]
-   self.PlayerData.job.grade = {}
-   self.PlayerData.job.grade.name = jobgrade.name
-   self.PlayerData.job.grade.level = tostring(grade)
-   self.PlayerData.job.payment = jobgrade.payment or 30
-   self.PlayerData.job.isboss = jobgrade.isboss or false
-  else
-   self.PlayerData.job.grade = {}
-   self.PlayerData.job.grade.name = 'No Grades'
-   self.PlayerData.job.grade.level = 0
-   self.PlayerData.job.payment = 30
-   self.PlayerData.job.isboss = false
-  end
-
-  self.Functions.UpdatePlayerData()
-  TriggerEvent('ra93Core:Server:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
-  TriggerClientEvent('ra93Core:Client:OnJobUpdate', self.PlayerData.source, self.PlayerData.job)
-
-  return true
- end
-
- function self.Functions.SetGang(gang, grade)
-  gang = gang:lower()
-  grade = tostring(grade) or "0"
-  if not ra93Core.shared.Gangs[gang] then return false end
-  self.PlayerData.gang.name = gang
-  self.PlayerData.gang.label = ra93Core.shared.Gangs[gang].label
-  self.PlayerData.gang.status = "hired"
-  if ra93Core.shared.Gangs[gang].grades[grade] then
-   local gangGrade = ra93Core.shared.Gangs[gang].grades[grade]
-   self.PlayerData.gang.grade = {}
-   self.PlayerData.gang.grade.name = gangGrade.name
-   self.PlayerData.gang.grade.level = tostring(grade)
-   self.PlayerData.gang.isboss = gangGrade.isboss or false
-  else
-   self.PlayerData.gang.grade = {}
-   self.PlayerData.gang.grade.name = "No Grades"
-   self.PlayerData.gang.grade.level = "0"
-   self.PlayerData.gang.isboss = false
-  end
-
-  if not self.Offline then
-   self.Functions.UpdatePlayerData()
-   TriggerEvent('ra93Core:Server:OnGangUpdate', self.PlayerData.source, self.PlayerData.gang)
-   TriggerClientEvent('ra93Core:Client:OnGangUpdate', self.PlayerData.source, self.PlayerData.gang)
-  end
-
-  return true
- end
-
- function self.Functions.SetActiveJob(job)
-  self.PlayerData.job = nil
-  self.PlayerData.job = job
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SetActiveGang(gang)
-  self.PlayerData.gang = nil
-  self.PlayerData.gang = gang
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SetJobDuty(onDuty)
-  self.PlayerData.job.onduty = not not onDuty -- Make sure the value is a boolean if nil is sent
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SetPlayerData(key, val)
-  if not key or type(key) ~= 'string' then return end
-  self.PlayerData[key] = val
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SetMetaData(meta, val)
-  if not meta or type(meta) ~= 'string' then return end
-  if meta == 'hunger' or meta == 'thirst' then
-   val = val > 100 and 100 or val
-  end
-  self.PlayerData.metadata[meta] = val
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.GetMetaData(meta)
-  if not meta or type(meta) ~= 'string' then return end
-  return self.PlayerData.metadata[meta]
- end
-
- function self.Functions.AddJobReputation(amount)
-  if not amount then return end
-  amount = tonumber(amount)
-  local job = self.PlayerData.job.name
-  if not self.PlayerData.metadata.jobrep[job] then self.PlayerData.metadata.jobrep[job] = "0" end
-  self.PlayerData.metadata.jobrep[job] += amount or amount
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SubtractJobReputation(amount)
-  if not amount then return end
-  amount = tonumber(amount)
-  local job = self.PlayerData.job.name
-  if not self.PlayerData.metadata.jobrep[job] then self.PlayerData.metadata.jobrep[job] = "0" end
-  self.PlayerData.metadata.jobrep[job] += amount or amount
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.AddToJobHistory(job,jobHistoryData)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
+  playerData.metadata.rapsheet = playerData.metadata.rapsheet or {}
+  playerData.metadata.licences = playerData.metadata.licences or {
+   ["driver"] = Ra93Core.config.NewPlayerLicenses.driver,
+   ["business"] = Ra93Core.config.NewPlayerLicenses.business,
+   ["weapon"] = Ra93Core.config.NewPlayerLicenses.weapon
   }
-  local ercnt = 0
-  if not job or not jobHistoryData then
-   status.error[ercnt] = {
-    ["subject"] = "AddToJobHistory Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua AddToJobHistory",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
+  playerData.metadata.inside = playerData.metadata.inside or {
+   ["house"] = nil,
+   ["apartment"] = {
+ ["apartmentType"] = nil,
+ ["apartmentId"] = nil,
+   }
+  }
+  playerData.metadata.phonedata = playerData.metadata.phonedata or {
+   serialnumber = Ra93Core.functions.createUniqueData("serialnumber"),
+   installedapps = {},
+  }
+  playerData.metadata.deathinfo = playerData.metadata.deathinfo or {}
+  if playerData.job and playerData.job.name and not Ra93Core.shared.jobs[playerData.job.name] then playerData.job = nil end
+  playerData.job = playerData.job or {}
+  playerData.job.name = playerData.job.name or "unemployed"
+  playerData.job.label = playerData.job.label or "Civilian"
+  playerData.job.payment = playerData.job.payment or Ra93Core.shared.jobs["unemployed"]["grades"]["0"].payment
+  playerData.job.type = playerData.job.type or "none"
+  playerData.job.status = playerData.job.status or "available"
+  if Ra93Core.config.enforceDefaultDuty or playerData.job.onduty == nil then playerData.job.onduty = Ra93Core.shared.jobs[playerData.job.name].defaultDuty end
+  playerData.job.isboss = playerData.job.isboss or false
+  playerData.job.grade = playerData.job.grade or {}
+  playerData.job.grade.name = playerData.job.grade.name or "Freelancer"
+  playerData.job.grade.level = playerData.job.grade.level or "0"
+  if playerData.gang and playerData.gang.name and not Ra93Core.shared.gangs[playerData.gang.name] then playerData.gang = nil end
+  playerData.gang = playerData.gang or {}
+  playerData.gang.name = playerData.gang.name or "none"
+  playerData.gang.label = playerData.gang.label or "No Gang Affiliaton"
+  playerData.gang.status = playerData.gang.status or "available"
+  playerData.gang.isboss = playerData.gang.isboss or false
+  playerData.gang.grade = playerData.gang.grade or {}
+  playerData.gang.grade.name = playerData.gang.grade.name or "none"
+  playerData.gang.grade.level = playerData.gang.grade.level or "0"
+  playerData.position = playerData.position or Ra93Core.config.defaultSpawn
+  playerData.items = GetResourceState("rcInventory") ~= "missing" and exports["rcInventory"]:LoadInventory(playerData.source, playerData.citizenid) or {}
+  return Ra93Core.player.createPlayer(playerData, Offline)
+ end,
+ ["createPlayer"] = function(playerData, Offline)
+  local self = {
+   ["functions"] = {
+ ["addField"] = function(fieldName, data) self[fieldName] = data end,
+ ["addHistory"] = function(jg, type, historyData)
+  local status = {}
+  if not job or not historyData then
+   status.error[0] = {
+ ["subject"] = "AddToJobHistory Args Empty",
+ ["msg"] = "arguments empty: core >server > player.lua AddToJobHistory",
+ ["jsMsg"] = "Failure!",
+ ["color"] = "error",
+ ["logName"] = "Ra93Core",
+ ["src"] = src,
+ ["log"] = true,
+ ["console"] = true
    }
    return status
   end
-  self.PlayerData.metadata.jobhistory[job] = jobHistoryData
-  self.Functions.UpdatePlayerData()
-  status.success[ercnt] = {
+  self.playerData.metadata[("%shistory"):format(type)][jg] = historyData
+  self.functions.updatePlayerData()
+  status.success[0] = {
    ["subject"] = "AddToJobHistory Success",
    ["msg"] = "AddToJobHistory Successful!",
    ["jsMsg"] = "Success!",
    ["color"] = "success",
-   ["logName"] = "ra93Core",
+   ["logName"] = "Ra93Core",
    ["src"] = src,
    ["log"] = true
   }
   return status
- end
-
- function self.Functions.AddToJobs(job,data)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
-  }
-  if not job or not data then
+ end,
+ ["addToJobsGangs"] = function(jg, type, data)
+  local status = {}
+  if not jg or not data or not type then
    status.error[0] = {
-    ["subject"] = "AddToJobs Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua AddToJobs",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
+ ["subject"] = "AddToJobsGangs Args Empty",
+ ["msg"] = "arguments empty: core >server > player.lua AddToJobsGangs",
+ ["jsMsg"] = "Failure!",
+ ["color"] = "error",
+ ["logName"] = "Ra93Core",
+ ["src"] = src,
+ ["log"] = true,
+ ["console"] = true
    }
    return status
   end
-  job = job:lower()
-  self.PlayerData.metadata.jobs[job] = data
-  self.Functions.UpdatePlayerData()
+  jg = jg:lower()
+  self.playerData.metadata[("%ss"):format(type)][jg] = data
+  self.functions.updatePlayerData()
   status.success[0] = {
-   ["subject"] = "AddToJobs Success",
-   ["msg"] = "AddToJobs Successful!",
+   ["subject"] = "AddToJobsGangs Success",
+   ["msg"] = "AddToJobsGangs Successful!",
    ["jsMsg"] = "Success!",
    ["color"] = "success",
-   ["logName"] = "ra93Core",
+   ["logName"] = "Ra93Core",
    ["src"] = src,
    ["log"] = true
   }
   return status
- end
-
- function self.Functions.UpdateJob(data)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
-  }
-  local ercnt = 0
-  if not data then
-   status.error[ercnt] = {
-    ["subject"] = "UpdateJob Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua UpdateJob",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
-   }
-   return status
-  end
-  self.PlayerData.job = data
-  self.Functions.UpdatePlayerData()
-  status.success[ercnt] = {
-   ["subject"] = "UpdateJob Success",
-   ["msg"] = "UpdateJob Successful!",
-   ["jsMsg"] = "Success!",
-   ["color"] = "success",
-   ["logName"] = "ra93Core",
-   ["src"] = src,
-   ["log"] = true
-  }
-  return status
- end
-
- function self.Functions.RemoveFromJobs(job)
-  if not job then return end
-  job = job:lower()
-  self.PlayerData.metadata.jobs[job] = nil
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.AddGangReputation(amount)
-  if not amount then return end
-  amount = tonumber(amount)
-  local gang = self.PlayerData.gang.name
-  if not self.PlayerData.metadata.gangrep[gang] then self.PlayerData.metadata.gangrep[gang] = "0" end
-  self.PlayerData.metadata.gangrep[gang] += amount or amount
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.SubtractGangReputation(amount)
-  if not amount then return end
-  amount = tonumber(amount)
-  local gang = self.PlayerData.gang.name
-  if not self.PlayerData.metadata.gangrep[gang] then self.PlayerData.metadata.gangrep[gang] = "0" end
-  self.PlayerData.metadata.gangrep[gang] += amount or amount
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.AddToGangHistory(gang,gangHistoryData)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
-  }
-  if not gang or not gangHistoryData then
-   status.error[0] = {
-    ["subject"] = "AddToGangHistory Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua AddToGangHistory",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
-   }
-   return status
-  end
-  self.PlayerData.metadata.ganghistory[gang] = gangHistoryData
-  self.Functions.UpdatePlayerData()
-  status.success[0] = {
-   ["subject"] = "AddToGangHistory Success",
-   ["msg"] = "AddToGangHistory Successful!",
-   ["jsMsg"] = "Success!",
-   ["color"] = "success",
-   ["logName"] = "ra93Core",
-   ["src"] = src,
-   ["log"] = true
-  }
-  return status
- end
-
- function self.Functions.AddToGangs(gang,data)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
-  }
-  local ercnt = 0
-  if not gang or not data then
-   status.error[ercnt] = {
-    ["subject"] = "AddToGangs Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua AddToGangs",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
-   }
-   return status
-  end
-  gang = gang:lower()
-  self.PlayerData.metadata.gangs[gang] = data
-  if self.PlayerData.metadata.gangs["none"] then self.PlayerData.metadata.gangs["none"] = nil end
-  self.Functions.UpdatePlayerData()
-  status.success[ercnt] = {
-   ["subject"] = "AddToGangs Success",
-   ["msg"] = "AddToGangs Successful!",
-   ["jsMsg"] = "Success!",
-   ["color"] = "success",
-   ["logName"] = "ra93Core",
-   ["src"] = src,
-   ["log"] = true
-  }
-  return status
- end
-
- function self.Functions.UpdateGang(data)
-  local status = {
-   ["error"] = {},
-   ["success"] = {}
-  }
-  local ercnt = 0
-  if not data then
-   status.error[ercnt] = {
-    ["subject"] = "UpdateGang Args Empty",
-    ["msg"] = "arguments empty: core >server > player.lua UpdateGang",
-    ["jsMsg"] = "Failure!",
-    ["color"] = "error",
-    ["logName"] = "ra93Core",
-    ["src"] = src,
-    ["log"] = true,
-    ["console"] = true
-   }
-   return status
-  end
-  self.PlayerData.gang = data
-  self.Functions.UpdatePlayerData()
-  status.success[ercnt] = {
-   ["subject"] = "UpdateGang Success",
-   ["msg"] = "UpdateGang Successful!",
-   ["jsMsg"] = "Success!",
-   ["color"] = "success",
-   ["logName"] = "ra93Core",
-   ["src"] = src,
-   ["log"] = true
-  }
-  return status
- end
-
- function self.Functions.RemoveFromGangs(gang)
-  if not gang then return end
-  gang = gang:lower()
-  self.PlayerData.metadata.gangs[gang] = nil
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.AddMoney(moneytype, amount, reason)
-  reason = reason or 'unknown'
+ end,
+ ["addMethod"] = function(methodName, handler) self.Functions[methodName] = handler end,
+ ["addMoney"] = function(moneytype, amount, reason)
+  reason = reason or "unknown"
   moneytype = moneytype:lower()
   amount = tonumber(amount)
   if amount < 0 then return end
-  if not self.PlayerData.money[moneytype] then return false end
-  self.PlayerData.money[moneytype] = self.PlayerData.money[moneytype] + amount
-
-  if not self.Offline then
-   self.Functions.UpdatePlayerData()
-   if amount > 100000 then
-    TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'AddMoney', 'lightgreen', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') added, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason, true)
-   else
-    TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'AddMoney', 'lightgreen', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') added, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason)
-   end
-   TriggerClientEvent('hud:client:OnMoneyChange', self.PlayerData.source, moneytype, amount, false)
-   TriggerClientEvent('ra93Core:Client:OnMoneyChange', self.PlayerData.source, moneytype, amount, "add", reason)
-   TriggerEvent('ra93Core:Server:OnMoneyChange', self.PlayerData.source, moneytype, amount, "add", reason)
+  if not self.playerData.currency[moneytype] then return false end
+  self.playerData.currency[moneytype] = self.playerData.currency[moneytype] + amount
+  if not self.offline then
+   self.functions.updatePlayerData()
+   TriggerEvent("rcLog:server:createLog", "playermoney", "AddMoney", "lightgreen", ("**%s (citizenid: %s | id: %s)** %s%s (%s) added, new %s balance: %s reason: %s"):format(GetPlayerName(self.playerData.source), self.playerData.citizenid, self.playerData.source, Ra93Core.config.location.currency.symbol, amount, moneytype, moneytype, self.playerData.currency[moneytype], reason))
+   TriggerClientEvent("hud:client:onMoneyChange", self.playerData.source, moneytype, amount, false)
+   TriggerClientEvent("Ra93Core:client:onMoneyChange", self.playerData.source, moneytype, amount, "add", reason)
+   TriggerEvent("Ra93Core:server:onMoneyChange", self.playerData.source, moneytype, amount, "add", reason)
   end
-
   return true
- end
-
- function self.Functions.RemoveMoney(moneytype, amount, reason)
-  reason = reason or 'unknown'
-  moneytype = moneytype:lower()
-  amount = tonumber(amount)
-  if amount < 0 then return end
-  if not self.PlayerData.money[moneytype] then return false end
-  for _, mtype in pairs(ra93Core.config.Money.DontAllowMinus) do
-   if mtype == moneytype then
-    if (self.PlayerData.money[moneytype] - amount) < 0 then
-     return false
-    end
-   end
-  end
-  self.PlayerData.money[moneytype] = self.PlayerData.money[moneytype] - amount
-
-  if not self.Offline then
-   self.Functions.UpdatePlayerData()
-   TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'RemoveMoney', 'red', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') removed, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason)
-   TriggerClientEvent('hud:client:OnMoneyChange', self.PlayerData.source, moneytype, amount, true)
-   if moneytype == 'bank' then
-    TriggerClientEvent('qb-phone:client:RemoveBankMoney', self.PlayerData.source, amount)
-   end
-   TriggerClientEvent('ra93Core:Client:OnMoneyChange', self.PlayerData.source, moneytype, amount, "remove", reason)
-   TriggerEvent('ra93Core:Server:OnMoneyChange', self.PlayerData.source, moneytype, amount, "remove", reason)
-  end
-
-  return true
- end
-
- function self.Functions.SetMoney(moneytype, amount, reason)
-  reason = reason or 'unknown'
-  moneytype = moneytype:lower()
-  amount = tonumber(amount)
-  if amount < 0 then return false end
-  if not self.PlayerData.money[moneytype] then return false end
-  local difference = amount - self.PlayerData.money[moneytype]
-  self.PlayerData.money[moneytype] = amount
-
-  if not self.Offline then
-   self.Functions.UpdatePlayerData()
-   TriggerEvent('qb-log:server:CreateLog', 'playermoney', 'SetMoney', 'green', '**' .. GetPlayerName(self.PlayerData.source) .. ' (citizenid: ' .. self.PlayerData.citizenid .. ' | id: ' .. self.PlayerData.source .. ')** $' .. amount .. ' (' .. moneytype .. ') set, new ' .. moneytype .. ' balance: ' .. self.PlayerData.money[moneytype] .. ' reason: ' .. reason)
-   TriggerClientEvent('hud:client:OnMoneyChange', self.PlayerData.source, moneytype, math.abs(difference), difference < 0)
-   TriggerClientEvent('ra93Core:Client:OnMoneyChange', self.PlayerData.source, moneytype, amount, "set", reason)
-   TriggerEvent('ra93Core:Server:OnMoneyChange', self.PlayerData.source, moneytype, amount, "set", reason)
-  end
-
-  return true
- end
-
- function self.Functions.GetMoney(moneytype)
-  if not moneytype then return false end
-  moneytype = moneytype:lower()
-  return self.PlayerData.money[moneytype]
- end
-
- function self.Functions.SetCreditCard(cardNumber)
-  self.PlayerData.charinfo.card = cardNumber
-  self.Functions.UpdatePlayerData()
- end
-
- function self.Functions.GetCardSlot(cardNumber, cardType)
+ end,
+ ["getCardSlot"] = function(cardNumber, cardType)
   local item = tostring(cardType):lower()
-  local slots = exports['qb-inventory']:GetSlotsByItem(self.PlayerData.items, item)
+  local slots = exports["rcInventory"]:GetSlotsByItem(self.playerData.items, item)
   for _, slot in pairs(slots) do
    if slot then
-    if self.PlayerData.items[slot].info.cardNumber == cardNumber then
-     return slot
-    end
+ if self.playerData.items[slot].info.cardNumber == cardNumber then return slot end
    end
   end
   return nil
- end
-
- function self.Functions.Save()
-  if self.Offline then
-   ra93Core.Player.SaveOffline(self.PlayerData)
-  else
-   ra93Core.Player.Save(self.PlayerData.source)
-  end
- end
-
- function self.Functions.Logout()
-  if self.Offline then return end -- Unsupported for Offline Players
-  ra93Core.Player.Logout(self.PlayerData.source)
- end
-
- function self.Functions.AddMethod(methodName, handler)
-  self.Functions[methodName] = handler
- end
-
- function self.Functions.AddField(fieldName, data)
-  self[fieldName] = data
- end
-
- if self.Offline then
-  return self
- else
-  ra93Core.Players[self.PlayerData.source] = self
-  ra93Core.Player.Save(self.PlayerData.source)
-
-  -- At this point we are safe to emit new instance to third party resource for load handling
-  TriggerEvent('ra93Core:Server:PlayerLoaded', self)
-  self.Functions.UpdatePlayerData()
- end
-end
-
--- Add a new function to the Functions table of the player class
--- Use-case:
---[[
- AddEventHandler('ra93Core:Server:PlayerLoaded', function(Player)
-  ra93Core.functions.AddPlayerMethod(Player.PlayerData.source, "functionName", function(oneArg, orMore)
-   -- do something here
-  end)
- end)
-]]
-
-function ra93Core.functions.AddPlayerMethod(ids, methodName, handler)
- local idType = type(ids)
- if idType == "number" then
-  if ids == -1 then
-   for _, v in pairs(ra93Core.Players) do
-    v.Functions.AddMethod(methodName, handler)
+ end,
+ ["getMetaData"] = function(meta)
+  if not meta or type(meta) ~= "string" then return end
+  return self.playerData.metadata[meta]
+ end,
+ ["getMoney"] = function(moneytype)
+  if not moneytype then return false end
+  moneytype = moneytype:lower()
+  return self.playerData.currency[moneytype]
+ end,
+ ["logout"] = function()
+  if self.offline then return end
+  Ra93Core.player.logout(self.playerData.source)
+ end,
+ ["modifyReputation"] = function(amount, jg, type)
+  if not amount then return end
+  amount = tonumber(amount)
+  if not self.playerData.metadata[("%srep"):format(type)][jg] then self.playerData.metadata[("%srep"):format(type)][jg] = "0" end
+  self.playerData.metadata[("%srep"):format(type)][jg] += amount or amount
+  self.functions.updatePlayerData()
+ end,
+ ["removeFromJobsGangs"] = function(jg, type)
+  if not jg then return end
+  jg = jg:lower()
+  self.playerData.metadata[("%ss"):format(type)][jg] = nil
+  self.functions.updatePlayerData()
+ end,
+ ["removeMoney"] = function(moneytype, amount, reason)
+  reason = reason or "unknown"
+  moneytype = moneytype:lower()
+  amount = tonumber(amount)
+  if amount < 0 then return end
+  if not self.playerData.currency[moneytype] then return false end
+  for _, mtype in pairs(Ra93Core.config.money.dontAllowMinus) do
+   if mtype == moneytype then
+ if (self.playerData.currency[moneytype] - amount) < 0 then return false end
    end
-  else
-   if not ra93Core.Players[ids] then return end
-
-   ra93Core.Players[ids].Functions.AddMethod(methodName, handler)
   end
- elseif idType == "table" and type(ids) == "array" then
-  for i = 1, #ids do
-   ra93Core.functions.AddPlayerMethod(ids[i], methodName, handler)
+  self.playerData.currency[moneytype] = self.playerData.currency[moneytype] - amount
+  if not self.offline then
+   self.functions.updatePlayerData()
+   TriggerEvent("rcLog:server:createLog", "playermoney", "RemoveMoney", "red", ("**%s (citizenid: %s | id: %s)** %s%s (%s) removed, new %s balance: %s  reason: %s"):format(GetPlayerName(self.playerData.source), self.playerData.citizenid, self.playerData.source, Ra93Core.config.location.currency.symbol, amount, moneytype, moneytype, self.playerData.currency[moneytype], reason))
+   TriggerClientEvent("hud:client:onMoneyChange", self.playerData.source, moneytype, amount, true)
+   if moneytype == "bank" then TriggerClientEvent("rcPhone:client:pemoveBankMoney", self.playerData.source, amount) end
+   TriggerClientEvent("Ra93Core:client:onMoneyChange", self.playerData.source, moneytype, amount, "remove", reason)
+   TriggerEvent("Ra93Core:server:onMoneyChange", self.playerData.source, moneytype, amount, "remove", reason)
   end
- end
-end
-
--- Add a new field table of the player class
--- Use-case:
---[[
- AddEventHandler('ra93Core:Server:PlayerLoaded', function(Player)
-  ra93Core.functions.AddPlayerField(Player.PlayerData.source, "fieldName", "fieldData")
- end)
-]]
-
-function ra93Core.functions.AddPlayerField(ids, fieldName, data)
- local idType = type(ids)
- if idType == "number" then
-  if ids == -1 then
-   for _, v in pairs(ra93Core.Players) do
-    v.Functions.AddField(fieldName, data)
+  return true
+ end,
+ ["save"] = function()
+  if self.offline then Ra93Core.player.saveOffline(self.playerData)
+  else Ra93Core.player.save(self.playerData.source) end
+ end,
+ ["setActiveJobGang"] = function(job, type)
+  self.playerData[type] = nil
+  self.playerData[type] = job
+  self.functions.updatePlayerData()
+ end,
+ ["setCreditCard"] = function(cardNumber)
+  self.playerData.charinfo.card = cardNumber
+  self.functions.updatePlayerData()
+ end,
+ ["setJobDuty"] = function(onDuty)
+  self.playerData.job.onduty = not not onDuty -- Make sure the value is a boolean if nil is sent
+  self.functions.updatePlayerData()
+ end,
+ ["setJobGang"] = function(jg, grade, type, types)
+  local selectType = {
+   ["job"] = {
+ ["func"] = function()
+  self.playerData[type].payment = Ra93Core.shared[types]["unemployed"].grades["0"].payment
+  self.playerData[type].payment = jobgrade.payment or Ra93Core.shared[types]["unemployed"].grades[grade].payment
+  self.playerData[type].onduty = Ra93Core.shared[types][jg].defaultDuty
+  self.playerData[type].type = Ra93Core.shared[types][jg].type or "none"
+  if not self.offline then
+   self.functions.updatePlayerData()
+   TriggerEvent("Ra93Core:server:onJobUpdate", self.playerData.source, self.playerData[type])
+   TriggerClientEvent("Ra93Core:client:onJobUpdate", self.playerData.source, self.playerData[type])
+  end
+ end,
+ ["gang"] = {
+  ["func"] = function()
+   if not self.offline then
+ self.functions.updatePlayerData()
+ TriggerEvent("Ra93Core:server:onGangUpdate", self.playerData.source, self.playerData.gang)
+ TriggerClientEvent("Ra93Core:client:onGangUpdate", self.playerData.source, self.playerData.gang)
    end
+  end
+ }
+   }
+  }
+  jg = jg:lower()
+  grade = tostring(grade) or 0
+  if not Ra93Core.shared[types][jg] then return false end
+  self.playerData[type].name = jg
+  self.playerData[type].label = Ra93Core.shared[types][jg].label
+  self.playerData[type].status = "hired"
+  if Ra93Core.shared[types][jg].grades[grade] then
+   local jobgrade = Ra93Core.shared[types][jg].grades[grade]
+   self.playerData[type].grade = {}
+   self.playerData[type].grade.name = jobgrade.name
+   self.playerData[type].grade.level = tostring(grade)
   else
-   if not ra93Core.Players[ids] then return end
-
-   ra93Core.Players[ids].Functions.AddField(fieldName, data)
+   self.playerData[type].grade = {}
+   self.playerData[type].grade.name = Ra93Core.shared[types]["unemployed"].grades["0"].name
+   self.playerData[type].grade.level = 0
   end
- elseif idType == "table" and type(ids) == "array" then
-  for i = 1, #ids do
-   ra93Core.functions.AddPlayerField(ids[i], fieldName, data)
+  selectType[type].func()
+  return true
+ end,
+ ["setMetaData"] = function(meta, val)
+  if not meta or type(meta) ~= "string" then return end
+  if meta == "hunger" or meta == "thirst" then
+   val = val > 100 and 100 or val
   end
- end
-end
-
--- Save player info to database (make sure citizenid is the primary key in your database)
-
-function ra93Core.Player.Save(source)
- local ped = GetPlayerPed(source)
- local pcoords = GetEntityCoords(ped)
- local PlayerData = ra93Core.Players[source].PlayerData
- if PlayerData then
-  MySQL.insert('INSERT INTO players (citizenid, cid, license, name, money, charinfo, job, gang, position, metadata) VALUES (:citizenid, :cid, :license, :name, :money, :charinfo, :job, :gang, :position, :metadata) ON DUPLICATE KEY UPDATE cid = :cid, name = :name, money = :money, charinfo = :charinfo, job = :job, gang = :gang, position = :position, metadata = :metadata', {
-   citizenid = PlayerData.citizenid,
-   cid = tonumber(PlayerData.cid),
-   license = PlayerData.license,
-   name = PlayerData.name,
-   money = json.encode(PlayerData.money),
-   charinfo = json.encode(PlayerData.charinfo),
-   job = json.encode(PlayerData.job),
-   gang = json.encode(PlayerData.gang),
-   position = json.encode(pcoords),
-   metadata = json.encode(PlayerData.metadata)
-  })
-  if GetResourceState('qb-inventory') ~= 'missing' then exports['qb-inventory']:SaveInventory(source) end
-  ra93Core.ShowSuccess(GetCurrentResourceName(), PlayerData.name .. ' PLAYER SAVED!')
- else
-  ra93Core.ShowError(GetCurrentResourceName(), 'ERROR ra93Core.PLAYER.SAVE - PLAYERDATA IS EMPTY!')
- end
-end
-
-function ra93Core.Player.SaveOffline(PlayerData)
- if PlayerData then
-  MySQL.Async.insert('INSERT INTO players (citizenid, cid, license, name, money, charinfo, job, gang, position, metadata) VALUES (:citizenid, :cid, :license, :name, :money, :charinfo, :job, :gang, :position, :metadata) ON DUPLICATE KEY UPDATE cid = :cid, name = :name, money = :money, charinfo = :charinfo, job = :job, gang = :gang, position = :position, metadata = :metadata', {
-   citizenid = PlayerData.citizenid,
-   cid = tonumber(PlayerData.cid),
-   license = PlayerData.license,
-   name = PlayerData.name,
-   money = json.encode(PlayerData.money),
-   charinfo = json.encode(PlayerData.charinfo),
-   job = json.encode(PlayerData.job),
-   gang = json.encode(PlayerData.gang),
-   position = json.encode(PlayerData.position),
-   metadata = json.encode(PlayerData.metadata)
-  })
-  if GetResourceState('qb-inventory') ~= 'missing' then exports['qb-inventory']:SaveInventory(PlayerData, true) end
-  ra93Core.ShowSuccess(GetCurrentResourceName(), PlayerData.name .. ' OFFLINE PLAYER SAVED!')
- else
-  ra93Core.ShowError(GetCurrentResourceName(), 'ERROR ra93Core.PLAYER.SAVEOFFLINE - PLAYERDATA IS EMPTY!')
- end
-end
-
--- Delete character
-
-local playertables = { -- Add tables as needed
- { table = 'players' },
- { table = 'apartments' },
- { table = 'bank_accounts' },
- { table = 'crypto_transactions' },
- { table = 'phone_invoices' },
- { table = 'phone_messages' },
- { table = 'playerskins' },
- { table = 'player_contacts' },
- { table = 'player_houses' },
- { table = 'player_mails' },
- { table = 'player_outfits' },
- { table = 'player_vehicles' }
-}
-
-function ra93Core.Player.DeleteCharacter(source, citizenid)
- local license = ra93Core.functions.GetIdentifier(source, 'license')
- local result = MySQL.scalar.await('SELECT license FROM players where citizenid = ?', { citizenid })
- if license == result then
-  local query = "DELETE FROM %s WHERE citizenid = ?"
-  local tableCount = #playertables
-  local queries = table.create(tableCount, 0)
-
-  for i = 1, tableCount do
-   local v = playertables[i]
-   queries[i] = {query = query:format(v.table), values = { citizenid }}
+  self.playerData.metadata[meta] = val
+  self.functions.updatePlayerData()
+ end,
+ ["setMoney"] = function(moneytype, amount, reason)
+  reason = reason or "unknown"
+  moneytype = moneytype:lower()
+  amount = tonumber(amount)
+  if amount < 0 then return false end
+  if not self.playerData.currency[moneytype] then return false end
+  local difference = amount - self.playerData.currency[moneytype]
+  self.playerData.currency[moneytype] = amount
+  if not self.offline then
+   self.functions.updatePlayerData()
+   TriggerEvent("rcLog:server:createLog", "playermoney", "SetMoney", "green", ("**%s (citizenid: %s | id: %s)** %s%s (%s) set, new %s balance: %s reason: %s"):format(GetPlayerName(self.playerData.source), self.playerData.citizenid, self.playerData.source, Ra93Core.config.location.currency.symbol, amount, moneytype, moneytype, self.playerData.currency[moneytype], reason))
+   TriggerClientEvent("hud:client:onMoneyChange", self.playerData.source, moneytype, math.abs(difference), difference < 0)
+   TriggerClientEvent("Ra93Core:client:onMoneyChange", self.playerData.source, moneytype, amount, "set", reason)
+   TriggerEvent("Ra93Core:server:onMoneyChange", self.playerData.source, moneytype, amount, "set", reason)
   end
-
-  MySQL.transaction(queries, function(result2)
-   if result2 then
-    TriggerEvent('qb-log:server:CreateLog', 'joinleave', 'Character Deleted', 'red', '**' .. GetPlayerName(source) .. '** ' .. license .. ' deleted **' .. citizenid .. '**..')
+  return true
+ end,
+ ["setPlayerData"] = function(key, val)
+  if not key or type(key) ~= "string" then return end
+  self.playerData[key] = val
+  self.functions.updatePlayerData()
+ end,
+ ["updateJobGang"] = function(jg, type, data)
+  local status = {}
+  if not data then
+   status.error[0] = {
+ ["subject"] = ("UpdateJobGang Args Empty"):format(),
+ ["msg"] = "arguments empty: core >server > player.lua UpdateJobGang",
+ ["jsMsg"] = "Failure!",
+ ["color"] = "error",
+ ["logName"] = "Ra93Core",
+ ["src"] = src,
+ ["log"] = true,
+ ["console"] = true
+   }
+   return status
+  end
+  self.playerData[type] = data
+  self.functions.updatePlayerData()
+  status.success[0] = {
+   ["subject"] = "UpdateJobGang Success",
+   ["msg"] = "UpdateJobGang Successful!",
+   ["jsMsg"] = "Success!",
+   ["color"] = "success",
+   ["logName"] = "Ra93Core",
+   ["src"] = src,
+   ["log"] = true
+  }
+  return status
+ end,
+ ["updatePlayerData"] = function()
+  if self.offline then return end -- Unsupported for Offline Players
+  TriggerEvent("Ra93Core:player:setPlayerData", self.playerData)
+  TriggerClientEvent("Ra93Core:player:setPlayerData", self.playerData.source, self.playerData)
+ end,
+   },
+   ["playerData"] = playerData,
+   ["offline"] = Offline
+  }
+  if self.offline then return self
+  else
+   Ra93Core.players[self.playerData.source] = self
+   Ra93Core.player.save(self.playerData.source)
+   TriggerEvent("Ra93Core:server:playerLoaded", self)
+   self.functions.updatePlayerData()
+  end
+ end,
+ ["deleteCharacter"] = function(source, citizenid)
+  local license = Ra93Core.functions.getIdentifier(source, "license")
+  local result = MySQL.scalar.await("SELECT license FROM players where citizenid = ?", { citizenid })
+  if license == result then
+   local query = "DELETE FROM %s WHERE citizenid = ?"
+   local tableCount = #Ra93Core.config.playerTables
+   local queries = {}
+   for i = 1, tableCount do
+    local v = Ra93Core.config.playerTables[i]
+    queries[i] = {query = query:format(v.table), values = { citizenid }}
    end
-  end)
- else
+   MySQL.transaction(queries, function(result2)
+    if result2 then TriggerEvent("rcLog:server:createLog", "joinleave", "Character Deleted", "red", ("**%s** %s deleted **%s**"):format(GetPlayerName(source), license, citizenid)) end
+   end)
+  else
+   DropPlayer(source, Lang:t("info.exploit_dropped"))
+   TriggerEvent("rcLog:server:createLog", "anticheat", "Anti-Cheat", "white", ("%s Has Been Dropped For Character Deletion Exploit"):format(GetPlayerName(source)))
+  end
+ end,
+ ["forceDeleteCharacter"] = function(citizenid)
+  local result = MySQL.scalar.await("SELECT license FROM players where citizenid = ?", { citizenid })
+  if result then
+   local query = "DELETE FROM %s WHERE citizenid = ?"
+   local tableCount = #Ra93Core.config.playerTables
+   local queries = {}
+   local player = Ra93Core.functions.getPlayerByCitizenId(citizenid)
+   if player then DropPlayer(player.playerData.source, "An admin deleted the character which you are currently using") end
+   for i = 1, tableCount do
+ local v = Ra93Core.config.playerTables[i]
+ queries[i] = {query = query:format(v.table), values = { citizenid }}
+   end
+   MySQL.transaction(queries, function(result2)
+ if result2 then TriggerEvent("rcLog:server:createLog", "joinleave", "Character Force Deleted", "red", ("Character **%s** got deleted"):format(citizenid)) end
+   end)
+  end
+ end,
+ ["getFirstSlotByItem"] = function(items, itemName)
+  if GetResourceState("rcInventory") == "missing" then return end
+  return exports["rcInventory"]:GetFirstSlotByItem(items, itemName)
+ end,
+ ["getOfflinePlayer"] = function(citizenid)
+  local playerData = Ra93Core.player.getPlayerData(citizenid)
+  if citizenid then
+   playerData = Ra93Core.player.getPlayerData(citizenid)
+   return Ra93Core.player.checkPlayerData(nil, playerData)
+  end
+  return nil
+ end,
+ ["getPlayerData"] = function(citizenid)
+  local pd, result
+  result = MySQL.prepare.await("SELECT citizenid, license, playerData FROM players where citizenid = ?", { citizenid })
+  pd = json.decode(result.playerData)
+  pd.citizenid = result.citizenid
+  pd.license = result.license
+  result = nil
+  return pd
+ end,
+ ["getSlotsByItem"] = function(items, itemName)
+  if GetResourceState("rcInventory") == "missing" then return end
+  return exports["rcInventory"]:GetSlotsByItem(items, itemName)
+ end,
+ ["getTotalWeight"] = function(items)
+  if GetResourceState("rcInventory") == "missing" then return end
+  return exports["rcInventory"]:GetTotalWeight(items)
+ end,
+ ["login"] = function(source, citizenid, newData)
+  local license, playerData
+  if source and source ~= "" then
+   if citizenid then
+ license = Ra93Core.functions.getIdentifier(source, "license")
+ playerData = Ra93Core.player.getPlayerData(citizenid)
+ if playerData and license ~= playerData.license then
+  playerData = nil
   DropPlayer(source, Lang:t("info.exploit_dropped"))
-  TriggerEvent('qb-log:server:CreateLog', 'anticheat', 'Anti-Cheat', 'white', GetPlayerName(source) .. ' Has Been Dropped For Character Deletion Exploit', true)
+  TriggerEvent("rcLog:server:createLog", "anticheat", "Anti-Cheat", "white", ("%s  Has Been Dropped For Character Joining Exploit"):format(GetPlayerName(source)))
+  return false
  end
-end
-
-function ra93Core.Player.ForceDeleteCharacter(citizenid)
- local result = MySQL.scalar.await('SELECT license FROM players where citizenid = ?', { citizenid })
- if result then
-  local query = "DELETE FROM %s WHERE citizenid = ?"
-  local tableCount = #playertables
-  local queries = table.create(tableCount, 0)
-  local Player = ra93Core.functions.GetPlayerByCitizenId(citizenid)
-
-  if Player then
-   DropPlayer(Player.PlayerData.source, "An admin deleted the character which you are currently using")
-  end
-  for i = 1, tableCount do
-   local v = playertables[i]
-   queries[i] = {query = query:format(v.table), values = { citizenid }}
-  end
-
-  MySQL.transaction(queries, function(result2)
-   if result2 then
-    TriggerEvent('qb-log:server:CreateLog', 'joinleave', 'Character Force Deleted', 'red', 'Character **' .. citizenid .. '** got deleted')
+ Ra93Core.player.checkPlayerData(source, playerData)
+   else
+ Ra93Core.player.checkPlayerData(source, newData)
    end
-  end)
- end
-end
-
--- Inventory Backwards Compatibility
-
-function ra93Core.Player.SaveInventory(source)
- if GetResourceState('qb-inventory') == 'missing' then return end
- exports['qb-inventory']:SaveInventory(source, false)
-end
-
-function ra93Core.Player.SaveOfflineInventory(PlayerData)
- if GetResourceState('qb-inventory') == 'missing' then return end
- exports['qb-inventory']:SaveInventory(PlayerData, true)
-end
-
-function ra93Core.Player.GetTotalWeight(items)
- if GetResourceState('qb-inventory') == 'missing' then return end
- return exports['qb-inventory']:GetTotalWeight(items)
-end
-
-function ra93Core.Player.GetSlotsByItem(items, itemName)
- if GetResourceState('qb-inventory') == 'missing' then return end
- return exports['qb-inventory']:GetSlotsByItem(items, itemName)
-end
-
-function ra93Core.Player.GetFirstSlotByItem(items, itemName)
- if GetResourceState('qb-inventory') == 'missing' then return end
- return exports['qb-inventory']:GetFirstSlotByItem(items, itemName)
-end
-
--- Util Functions
-
-function ra93Core.Player.CreateCitizenId()
- local UniqueFound = false
- local CitizenId = nil
- while not UniqueFound do
-  CitizenId = tostring(ra93Core.shared.RandomStr(3) .. ra93Core.shared.RandomInt(5)):upper()
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM players WHERE citizenid = ?', { CitizenId })
-  if result == 0 then
-   UniqueFound = true
+   return true
+  else
+   Ra93Core.showError(GetCurrentResourceName(), "ERROR Ra93Core.player.login - NO SOURCE GIVEN!")
+   return false
   end
- end
- return CitizenId
-end
-
-function ra93Core.functions.CreateAccountNumber()
- local UniqueFound = false
- local AccountNumber = nil
- while not UniqueFound do
-  AccountNumber = 'US0' .. math.random(1, 9) .. 'ra93Core' .. math.random(1111, 9999) .. math.random(1111, 9999) .. math.random(11, 99)
-  local query = '%' .. AccountNumber .. '%'
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM players WHERE charinfo LIKE ?', { query })
-  if result == 0 then
-   UniqueFound = true
+ end,
+ ["logout"] = function(source)
+  TriggerClientEvent("Ra93Core:client:onPlayerUnload", source)
+  TriggerEvent("Ra93Core:server:onPlayerUnload", source)
+  TriggerClientEvent("Ra93Core:player:updatePlayerData", source)
+  Wait(200)
+  Ra93Core.players[source] = nil
+ end,
+ ["save"] = function(source)
+  local ped = GetPlayerPed(source)
+  playerData.position = GetEntityCoords(ped)
+  local playerData = Ra93Core.players[source].playerData
+  if playerData then
+   MySQL.insert("INSERT INTO players (citizenid, cid, license, playerdata) VALUES (:citizenid, :cid, :license, :playerdata) ON DUPLICATE KEY UPDATE cid = :cid, playerdata = :playerdata", {
+ citizenid = playerData.citizenid,
+ cid = tonumber(playerData.cid),
+ license = playerData.license,
+ playerdata = json.encode(playerData.name),
+   })
+   if GetResourceState("rcInventory") ~= "missing" then exports["rcInventory"]:SaveInventory(source) end
+   Ra93Core.showSuccess(GetCurrentResourceName(), ("%s player SAVED!"):format(playerData.name))
+  else Ra93Core.showError(GetCurrentResourceName(), "ERROR Ra93Core.player.save - playerData IS EMPTY!") end
+ end,
+ ["saveInventory"] = function(source)
+  if GetResourceState("rcInventory") == "missing" then return end
+  exports["rcInventory"]:SaveInventory(source, false)
+ end,
+ ["saveOffline"] = function(playerData)
+  if playerData then
+   MySQL.Async.insert("INSERT INTO players (citizenid, cid, license, playerdata) VALUES (:citizenid, :cid, :license, :playerdata) ON DUPLICATE KEY UPDATE cid = :cid, playerdata = :playerdata", {
+ citizenid = playerData.citizenid,
+ cid = tonumber(playerData.cid),
+ license = playerData.license,
+ playerdata = json.encode(playerData)
+   })
+   if GetResourceState("rcInventory") ~= "missing" then exports["rcInventory"]:SaveInventory(playerData, true) end
+   Ra93Core.showSuccess(GetCurrentResourceName(), ("%s OFFLINE player SAVED!"):format(playerData.name))
+  else
+   Ra93Core.showError(GetCurrentResourceName(), "ERROR Ra93Core.player.sAVEOFFLINE - playerData IS EMPTY!")
   end
- end
- return AccountNumber
-end
-
-function ra93Core.functions.CreatePhoneNumber()
- local UniqueFound = false
- local PhoneNumber = nil
- while not UniqueFound do
-  PhoneNumber = math.random(100,999) .. math.random(1000000,9999999)
-  local query = '%' .. PhoneNumber .. '%'
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM players WHERE charinfo LIKE ?', { query })
-  if result == 0 then
-   UniqueFound = true
-  end
- end
- return PhoneNumber
-end
-
-function ra93Core.Player.CreateFingerId()
- local UniqueFound = false
- local FingerId = nil
- while not UniqueFound do
-  FingerId = tostring(ra93Core.shared.RandomStr(2) .. ra93Core.shared.RandomInt(3) .. ra93Core.shared.RandomStr(1) .. ra93Core.shared.RandomInt(2) .. ra93Core.shared.RandomStr(3) .. ra93Core.shared.RandomInt(4))
-  local query = '%' .. FingerId .. '%'
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM `players` WHERE `metadata` LIKE ?', { query })
-  if result == 0 then
-   UniqueFound = true
-  end
- end
- return FingerId
-end
-
-function ra93Core.Player.CreateWalletId()
- local UniqueFound = false
- local WalletId = nil
- while not UniqueFound do
-  WalletId = 'QB-' .. math.random(11111111, 99999999)
-  local query = '%' .. WalletId .. '%'
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM players WHERE metadata LIKE ?', { query })
-  if result == 0 then
-   UniqueFound = true
-  end
- end
- return WalletId
-end
-
-function ra93Core.Player.CreateSerialNumber()
- local UniqueFound = false
- local SerialNumber = nil
- while not UniqueFound do
-  SerialNumber = math.random(11111111, 99999999)
-  local query = '%' .. SerialNumber .. '%'
-  local result = MySQL.prepare.await('SELECT COUNT(*) as count FROM players WHERE metadata LIKE ?', { query })
-  if result == 0 then
-   UniqueFound = true
-  end
- end
- return SerialNumber
-end
-
-PaycheckInterval() -- This starts the paycheck system
+ end,
+ ["saveOfflineInventory"] = function(playerData)
+  if GetResourceState("rcInventory") == "missing" then return end
+  exports["rcInventory"]:SaveInventory(playerData, true)
+ end,
+}
+Ra93Core.players = {}
+PaycheckInterval()

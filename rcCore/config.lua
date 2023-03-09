@@ -1,22 +1,9 @@
-ra93Config = {
+Config = {
+ ["enforceDefaultDuty"] = true,
  ["maxPlayers"] = GetConvarInt('sv_maxclients', 48), -- Gets max players from config file, default 48
  ["defaultSpawn"] = vector4(-1035.71, -2731.87, 12.86, 0.0),
  ["updateInterval"] = 5, -- how often to update player data in minutes
  ["statusInterval"] = 5000, -- how often to check hunger/thirst status in milliseconds
- ["currency"] = {
-  ["currencySymbol"] = "$",
-  ["currencyTypes"] = {
-   ["cash"] = 500,
-   ["bank"] = 5000,
-   ["crypto"] = 0
-  }, -- type = startamount - Add or remove money types for your server (for ex. blackmoney = 0), remember once added it will not be removed from the database!
-  ["dontAllowMinus"] = {
-   "cash",
-   "crypto"
-  }, -- Money that is not allowed going in minus
-  ["payCheckTimeOut"] = 10, -- The time in minutes that it will give the paycheck
-  ["payCheckSociety"] = false, -- If true paycheck will come from the society account that the player is employed at, requires qb-management
- },
  ["player"] = {
   ["hungerRate"] = 4.2, -- Rate at which hunger goes down.
   ["thirstRate"] = 3.8, -- Rate at which thirst goes down.
@@ -41,7 +28,7 @@ ra93Config = {
   ["discord"] = "", -- Discord invite link
   ["checkDuplicateLicense"] = true, -- Check for duplicate rockstar license on join
   ["permissions"] = { 'god', 'admin', 'mod' }, -- Add as many groups as you want here after creating them in your server.cfg
- }, -- General server config
+ },
  ["notify"] = {
   ["notificationStyling"] = {
    ["group"] = false, -- Allow notifications to stack with a badge instead of repeating
@@ -78,5 +65,48 @@ ra93Config = {
   ["driver"] = true,
   ['business'] = false,
   ['weapon'] = false
+ },
+ ["location"] = {
+  ["countryCode"] = "US",
+  ["currency"] = {
+   ["symbol"] = "$",
+   ["types"] = {
+    ["cash"] = 500,
+    ["bank"] = 5000,
+    ["crypto"] = 0
+   }, -- type = startamount - Add or remove money types for your server (for ex. blackmoney = 0), remember once added it will not be removed from the database!
+   ["dontAllowMinus"] = {
+    "cash",
+    "crypto"
+   }, -- Money that is not allowed going in minus
+   ["payCheckTimeOut"] = 10, -- The time in minutes that it will give the paycheck
+   ["payCheckSociety"] = false, -- If true paycheck will come from the society account that the player is employed at, requires rcEconomy
+  },
+  -- 11-222-333-4444
+  -- Each Section is Described as such:
+  -- Country Code 11
+  -- areaCode 111
+  -- exchange 222
+  -- subscriberDigits 3333
+  ["phone"] = {
+   ["countryCode"] = "01",
+   ["areaCodeDigits"] = 3,
+   ["exchangeDigits"] = 3,
+   ["subscriberDigits"] = 4,
+  },
+ },
+ ["playerTables"] = {
+  {["table"] = "players"},
+  {["table"] = "apartments"},
+  {["table"] = "bank_accounts"},
+  {["table"] = "crypto_transactions"},
+  {["table"] = "phone_invoices"},
+  {["table"] = "phone_messages"},
+  {["table"] = "playerskins"},
+  {["table"] = "player_contacts"},
+  {["table"] = "player_houses"},
+  {["table"] = "player_mails"},
+  {["table"] = "player_outfits"},
+  {["table"] = "player_vehicles"}
  }
 }
