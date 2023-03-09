@@ -5,7 +5,7 @@ import {
   DEV_MODE,
   fetchNotifyConfig,
   NOTIFY_CONFIG,
-} from "./config.js";
+} from "./Config.js";
 
 const { useQuasar } = Quasar;
 const { onMounted, onUnmounted } = Vue;
@@ -24,7 +24,7 @@ const app = Vue.createApp({
    // Make sure we have sucessfully fetched out config properly
    if (!NOTIFY_CONFIG) {
   console.error(
-    "The notification config did not load properly, trying again for next time"
+ "The notification config did not load properly, trying again for next time"
   );
   // Lets check again to see if it exists
   await fetchNotifyConfig();
@@ -38,9 +38,9 @@ const app = Vue.createApp({
   multiLine: text.length > 100,
   // If our text is larger than a 100 characters,
   // we should use multiline notifications
-  group: NOTIFY_CONFIG.NotificationStyling.group ?? false,
-  progress: NOTIFY_CONFIG.NotificationStyling.progress ?? true,
-  position: NOTIFY_CONFIG.NotificationStyling.position ?? "right",
+  group: NOTIFY_Config.NotificationStyling.group ?? false,
+  progress: NOTIFY_Config.NotificationStyling.progress ?? true,
+  position: NOTIFY_Config.NotificationStyling.position ?? "right",
   timeout: length,
   caption,
   classes,

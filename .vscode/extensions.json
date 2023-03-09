@@ -1,10 +1,10 @@
 {
-    "recommendations": [
-        "sumneko.lua",
-        "fivem-vscode.fivem-vscode",
-        "ihyajb.ra93Core-code-snippets",
-        "EditorConfig.EditorConfig",
-        "eamodio.gitlens",
-        "GitHub.vscode-pull-request-github"
-    ]
+ "recommendations": [
+  "sumneko.lua",
+  "fivem-vscode.fivem-vscode",
+  "ihyajb.Ra93Core-code-snippets",
+  "EditorConfig.EditorConfig",
+  "eamodio.gitlens",
+  "GitHub.vscode-pull-request-github"
+ ]
 }

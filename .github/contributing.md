@@ -37,9 +37,9 @@ These guidelines will help you help us in the best way possible regardless of yo
 
 > **Note:** Please don't file an issue to ask a question. You'll get faster results by using the resources below.
 
-* [ra93Core Website](Coming Soon)
-* [ra93Core Discord](https://discord.gg/VrrHWnMuft)
-* [FiveM Discord - #ra93Core channel](https://discord.gg/fivem)
+* [Ra93Core Website](Coming Soon)
+* [Ra93Core Discord](https://discord.gg/VrrHWnMuft)
+* [FiveM Discord - #Ra93Core channel](https://discord.gg/fivem)
 
 ## How Can I Contribute?
 
@@ -54,9 +54,9 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 #### Before Submitting A Bug Report
 
 * **Check the docs** There's a chance what you see as a bug might just work differently than you expect and if you think it could work better consider a feature enhancement report instead.
-* **Search the [discord](https://discord.gg/ra93Core)** to see if anyone else has run into the issue and see if it was solved through user error or code changes. (if the code change isn't pending a PR and you know what you're doing consider submitting one following [Pull Requests](#pull-requests) )
-* **Determine which resource the problem should be reported in**. If the bug is related to the inventory for example report this bug under qb-inventory rather than under qb-core or some other resource.
-* **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Ara93Core-framework)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
+* **Search the [discord](https://discord.gg/Ra93Core)** to see if anyone else has run into the issue and see if it was solved through user error or code changes. (if the code change isn't pending a PR and you know what you're doing consider submitting one following [Pull Requests](#pull-requests) )
+* **Determine which resource the problem should be reported in**. If the bug is related to the inventory for example report this bug under rcInventory rather than under Ra93Core or some other resource.
+* **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3ARa93Core-framework)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Bug Report?
 
@@ -74,13 +74,13 @@ Explain the problem and include additional details to help maintainers reproduce
 
 Provide more context by answering these questions if possible:
 
-* **Did the problem start happening recently** (e.g. after updating to a new version of ra93Core?) or was this always a problem?
-* If the problem started happening recently, **can you reproduce the problem in an older version of ra93Core?** What's the most recent commit in which the problem doesn't happen?
+* **Did the problem start happening recently** (e.g. after updating to a new version of Ra93Core?) or was this always a problem?
+* If the problem started happening recently, **can you reproduce the problem in an older version of Ra93Core?** What's the most recent commit in which the problem doesn't happen?
 * **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
 
 Include details about your setup:
 
-* **When was your ra93Core last updated?**
+* **When was your Ra93Core last updated?**
 * **What OS is the server running on**?
 * **Which *extra* resources do you have installed?**
 
@@ -88,16 +88,16 @@ Include details about your setup:
 
 ### Suggesting Features / Enhancements
 
-This section guides you through submitting an enhancement suggestion for ra93Core, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion.
+This section guides you through submitting an enhancement suggestion for Ra93Core, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion.
 
 Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion) as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). Fill in feature request template, including the steps that you imagine you would take if the feature you're requesting existed.
 
 #### Before Submitting An Enhancement Suggestion
 
-* **Make sure it doesn't already exist.** Sounds silly, but there's a lot of features built in to ra93Core that people don't realize so take a look through the docs and stuff to make sure it's not already there.
+* **Make sure it doesn't already exist.** Sounds silly, but there's a lot of features built in to Ra93Core that people don't realize so take a look through the docs and stuff to make sure it's not already there.
 * **Check if there's already PR which provides that enhancement.**
-* **Determine which resource the enhancement should be suggested in.** if it fits with another resource suggest it in that resource. if it would be it's own resource suggest it in the main qb-core repository.
-* **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Ara93Core-framework)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+* **Determine which resource the enhancement should be suggested in.** if it fits with another resource suggest it in that resource. if it would be it's own resource suggest it in the main Ra93Core repository.
+* **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3ARa93Core-framework)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 
 #### How Do I Submit A (Good) Enhancement Suggestion?
 
@@ -107,7 +107,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of ra93Core which the suggestion is related to.
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Ra93Core which the suggestion is related to.
 * **Explain why this enhancement would be useful.**
 * **Be creative and unique.** Stealing ideas from popular servers 1:1 detail isn't going to get accepted.
 
@@ -115,7 +115,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to ra93Core? You can start by looking through these `beginner` and `help-wanted` issues.
+Unsure where to begin contributing to Ra93Core? You can start by looking through these `beginner` and `help-wanted` issues.
 
 ---
 
@@ -123,10 +123,10 @@ Unsure where to begin contributing to ra93Core? You can start by looking through
 
 The process described here has several goals:
 
-- Maintain ra93Core's quality.
+- Maintain Ra93Core's quality.
 - Fix problems that are important to users.
-- Engage the community in working toward the best possible ra93Core.
-- Enable a sustainable system for ra93Core's maintainers to review contributions.
+- Engage the community in working toward the best possible Ra93Core.
+- Enable a sustainable system for Ra93Core's maintainers to review contributions.
 
 Please follow these steps to have your contribution considered by the maintainers:
 
@@ -145,16 +145,16 @@ While the prerequisites above must be satisfied prior to having your pull reques
 * Limit the first line to 72 characters or less.
 * Reference issues and pull requests liberally after the first line.
 * Consider starting the commit message with an applicable emoji:
-    * :art: `:art:` when improving the format/structure of the code
-    * :racehorse: `:racehorse:` when improving performance
-    * :memo: `:memo:` when writing docs
-    * :bug: `:bug:` when fixing a bug
-    * :fire: `:fire:` when removing code or files
-    * :white_check_mark: `:white_check_mark:` when adding tests
-    * :lock: `:lock:` when dealing with security
-    * :arrow_up: `:arrow_up:` when upgrading dependencies
-    * :arrow_down: `:arrow_down:` when downgrading dependencies
-    * :shirt: `:shirt:` when removing linter warnings
+ * :art: `:art:` when improving the format/structure of the code
+ * :racehorse: `:racehorse:` when improving performance
+ * :memo: `:memo:` when writing docs
+ * :bug: `:bug:` when fixing a bug
+ * :fire: `:fire:` when removing code or files
+ * :white_check_mark: `:white_check_mark:` when adding tests
+ * :lock: `:lock:` when dealing with security
+ * :arrow_up: `:arrow_up:` when upgrading dependencies
+ * :arrow_down: `:arrow_down:` when downgrading dependencies
+ * :shirt: `:shirt:` when removing linter warnings
 
 ### Lua Styleguide
 

@@ -39,9 +39,9 @@ local Translations = {
   tp = {
    help = '(אדמינים בלבד) טלפורט לשחקן או לקואורדינטות',
    params = {
-    x = { name = 'id/x', help = 'X של שחקן או קואורדינטת ID' },
-    y = { name = 'y', help = 'Y קואורדינטת' },
-    z = { name = 'z', help = 'Z קואורדינטת' },
+ x = { name = 'id/x', help = 'X של שחקן או קואורדינטת ID' },
+ y = { name = 'y', help = 'Y קואורדינטת' },
+ z = { name = 'z', help = 'Z קואורדינטת' },
    },
   },
   tpm = { help = 'טלפורט לנקודת מיקום (אדמינים בלבד)' },
@@ -49,70 +49,70 @@ local Translations = {
   addpermission = {
    help = '(גוד בלבד) להביא גישה לשחקן',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    permission = { name = 'גישה', help = 'רמת הגישה' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ permission = { name = 'גישה', help = 'רמת הגישה' },
    },
   },
   removepermission = {
    help = '(גוד בלבד) להסיר גישה לשחקן',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    permission = { name = 'גישה', help = 'רמת הגישה' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ permission = { name = 'גישה', help = 'רמת הגישה' },
    },
   },
   openserver = { help = 'פתח את השרת לכולם (אדמינים בלבד)' },
   closeserver = {
    help = 'סגור את השרת לשחקנים ללא גישות (אדמינים בלבד)',
    params = {
-    reason = { name = 'סיבה', help = 'הסיבה לסגירה (אופציונלי)' },
+ reason = { name = 'סיבה', help = 'הסיבה לסגירה (אופציונלי)' },
    },
   },
   car = {
    help = 'תיצור רכב (אדמינים בלבד)',
    params = {
-    model = { name = 'דגם', help = 'שם הדגם של הרכב' },
+ model = { name = 'דגם', help = 'שם הדגם של הרכב' },
    },
   },
   dv = { help = 'מחק רכב (אדמינים בלבד)' },
   givemoney = {
    help = 'תן כסף לשחקן (אדמינים בלבד)',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    moneytype = { name = 'סוג כסף', help = '(cash, bank, crypto) סוג הכסף' },
-    amount = { name = 'כמות', help = 'כמות הכסף' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ moneytype = { name = 'סוג כסף', help = '(cash, bank, crypto) סוג הכסף' },
+ amount = { name = 'כמות', help = 'כמות הכסף' },
    },
   },
   setmoney = {
    help = 'קבע סכום כסף לשחקן (אדמינים בלבד)',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    moneytype = { name = 'סוג כסף', help = '(cash, bank, crypto) סוג הכסף' },
-    amount = { name = 'כמות', help = 'כמות הכסף' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ moneytype = { name = 'סוג כסף', help = '(cash, bank, crypto) סוג הכסף' },
+ amount = { name = 'כמות', help = 'כמות הכסף' },
    },
   },
   job = { help = 'בדוק את העבודה שלך' },
   setjob = {
    help = 'קבע עבודה לשחקן (אדמינים בלבד)',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    job = { name = 'עבודה', help = 'שם העבודה' },
-    grade = { name = 'דרגה', help = 'דרגת העבודה' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ job = { name = 'עבודה', help = 'שם העבודה' },
+ grade = { name = 'דרגה', help = 'דרגת העבודה' },
    },
   },
   gang = { help = 'בדוק את הגאנג שלך' },
   setgang = {
    help = 'קבע גאנג לשחקן (אדמינים בלבד)',
    params = {
-    id = { name = 'id', help = 'של שחקן ID' },
-    gang = { name = 'גאנג', help = 'שם הגאנג' },
-    grade = { name = 'דרגה', help = 'דרגת הגאנג' },
+ id = { name = 'id', help = 'של שחקן ID' },
+ gang = { name = 'גאנג', help = 'שם הגאנג' },
+ grade = { name = 'דרגה', help = 'דרגת הגאנג' },
    },
   },
   ooc = { help = 'OOC הודעת' },
   me = {
    help = 'הצג הודעה מקומית',
    params = {
-    message = { name = 'הודעה', help = 'ההודעה שתישלח' }
+ message = { name = 'הודעה', help = 'ההודעה שתישלח' }
    },
   },
  },

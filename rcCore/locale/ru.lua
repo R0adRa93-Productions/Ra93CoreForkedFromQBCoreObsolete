@@ -39,9 +39,9 @@ local Translations = {
   tp = {
    help = 'Телепортироваться к игроку или координатам (только админам)',
    params = {
-    x = { name = 'id/x', help = 'ID игрока или координат X' },
-    y = { name = 'y', help = 'Координат Y' },
-    z = { name = 'z', help = 'Координат Z' },
+ x = { name = 'id/x', help = 'ID игрока или координат X' },
+ y = { name = 'y', help = 'Координат Y' },
+ z = { name = 'z', help = 'Координат Z' },
    },
   },
   tpm = { help = 'Телепортироваться к путевой точке (только админам)' },
@@ -49,70 +49,70 @@ local Translations = {
   addpermission = {
    help = 'Дать доступ игроку (только god)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    permission = { name = 'доступ', help = 'Уровень доступа' },
+ id = { name = 'id', help = 'ID игрока' },
+ permission = { name = 'доступ', help = 'Уровень доступа' },
    },
   },
   removepermission = {
    help = 'Убрать доступ от игрока (только god)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    permission = { name = 'доступ', help = 'Уровень доступа' },
+ id = { name = 'id', help = 'ID игрока' },
+ permission = { name = 'доступ', help = 'Уровень доступа' },
    },
   },
   openserver = { help = 'Открыть сервер всем (только админам)' },
   closeserver = {
    help = 'Закрыть сервер для игроков без доступа (только админам)',
    params = {
-    reason = { name = 'причина', help = 'Причина закрытия (необязательно)' },
+ reason = { name = 'причина', help = 'Причина закрытия (необязательно)' },
    },
   },
   car = {
    help = 'Создать транспорт (только админам)',
    params = {
-    model = { name = 'модель', help = 'Название модели транспорта' },
+ model = { name = 'модель', help = 'Название модели транспорта' },
    },
   },
   dv = { help = 'Удалить транспорт (только админам)' },
   givemoney = {
    help = 'Дать деньги игроку (только админам)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    moneytype = { name = 'вид денег', help = 'Вид денег (cash, bank, crypto)' },
-    amount = { name = 'количество', help = 'Количество денег' },
+ id = { name = 'id', help = 'ID игрока' },
+ moneytype = { name = 'вид денег', help = 'Вид денег (cash, bank, crypto)' },
+ amount = { name = 'количество', help = 'Количество денег' },
    },
   },
   setmoney = {
    help = 'Настроить сумму денег игрока (только админам)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    moneytype = { name = 'вид денег', help = 'Вид денег (cash, bank, crypto)' },
-    amount = { name = 'количество', help = 'Количество денег' },
+ id = { name = 'id', help = 'ID игрока' },
+ moneytype = { name = 'вид денег', help = 'Вид денег (cash, bank, crypto)' },
+ amount = { name = 'количество', help = 'Количество денег' },
    },
   },
   job = { help = 'Проверьте свою работу' },
   setjob = {
    help = 'Настроить работу игрока (только админам)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    job = { name = 'работа', help = 'Название работы' },
-    grade = { name = 'ранг', help = 'Ранг работы' },
+ id = { name = 'id', help = 'ID игрока' },
+ job = { name = 'работа', help = 'Название работы' },
+ grade = { name = 'ранг', help = 'Ранг работы' },
    },
   },
   gang = { help = 'Проверьте свою банду' },
   setgang = {
    help = 'Настроить банду игрока (только админам)',
    params = {
-    id = { name = 'id', help = 'ID игрока' },
-    gang = { name = 'банда', help = 'Название банды' },
-    grade = { name = 'ранг', help = 'Ранг банды' },
+ id = { name = 'id', help = 'ID игрока' },
+ gang = { name = 'банда', help = 'Название банды' },
+ grade = { name = 'ранг', help = 'Ранг банды' },
    },
   },
   ooc = { help = 'Сообщение ООС в чате' },
   me = {
    help = 'Показать локальное сообщение',
    params = {
-    message = { name = 'сообщение', help = 'Сообщение для отправки' },
+ message = { name = 'сообщение', help = 'Сообщение для отправки' },
    },
   },
  },

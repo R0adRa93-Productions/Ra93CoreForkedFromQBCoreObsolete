@@ -4,8 +4,8 @@ export const registerWindowMethods = () => {
  window.dispatchEvent(
    new MessageEvent("message", {
   data: {
-    action: "notify",
-    ...data,
+ action: "notify",
+ ...data,
   },
    })
  );

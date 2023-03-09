@@ -31,9 +31,9 @@ local Translations = {
   tp = {
    help = 'Teleport k hráči nebo na souřadnice (Pouze Admin)',
    params = {
-    x = { name = 'id/x', help = 'ID hráče nebo X pozice'},
-    y = { name = 'y', help = 'Y pozice'},
-    z = { name = 'z', help = 'Z pozice'},
+ x = { name = 'id/x', help = 'ID hráče nebo X pozice'},
+ y = { name = 'y', help = 'Y pozice'},
+ z = { name = 'z', help = 'Z pozice'},
    },
   },
   tpm = { help = 'TP Na Marker (pouze Admin)' },
@@ -41,70 +41,70 @@ local Translations = {
   addpermission = {
    help = 'Udělení hráči oprávnění (God Pouze)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    permission = { name = 'permission', help = 'Úroveň oprávnění' },
+ id = { name = 'id', help = 'ID hráče' },
+ permission = { name = 'permission', help = 'Úroveň oprávnění' },
    },
   },
   removepermission = {
    help = 'Odeber hráči oprávnění (God Pouze)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    permission = { name = 'permission', help = 'Úroveň oprávnění' },
+ id = { name = 'id', help = 'ID hráče' },
+ permission = { name = 'permission', help = 'Úroveň oprávnění' },
    },
   },
   openserver = { help = 'Otevři server pro všechny (Pouze Admin)' },
   closeserver = {
    help = 'Uzavři server pro všechny bez práv (Pouze Admin)',
    params = {
-    reason = { name = 'reason', help = 'Důdov pro uzavření (optimální)' },
+ reason = { name = 'reason', help = 'Důdov pro uzavření (optimální)' },
    },
   },
   car = {
    help = 'Spawn Vozidla (Pouze Admin)',
    params = {
-    model = { name = 'model', help = 'Jméno modelu vozidla' },
+ model = { name = 'model', help = 'Jméno modelu vozidla' },
    },
   },
   dv = { help = 'Odstraň vozidlo (Pouze Admin)' },
   givemoney = {
    help = 'Dej hráči peníze (Pouze Admin)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    moneytype = { name = 'moneytype', help = 'Typ (hotovost, banka, krypto)' },
-    amount = { name = 'amount', help = 'Počet peněz' },
+ id = { name = 'id', help = 'ID hráče' },
+ moneytype = { name = 'moneytype', help = 'Typ (hotovost, banka, krypto)' },
+ amount = { name = 'amount', help = 'Počet peněz' },
    },
   },
   setmoney = {
    help = 'Nastav hráči peníze (Pouze Admin)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    moneytype = { name = 'moneytype', help = 'Typ (hotovost, banka, krypto)' },
-    amount = { name = 'amount', help = 'Počet peněz' },
+ id = { name = 'id', help = 'ID hráče' },
+ moneytype = { name = 'moneytype', help = 'Typ (hotovost, banka, krypto)' },
+ amount = { name = 'amount', help = 'Počet peněz' },
    },
   },
   job = { help = 'Zkontroluj si práci' },
   setjob = {
    help = 'Nastav hráči práci (Pouze Admin)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    job = { name = 'job', help = 'Jméno práce' },
-    grade = { name = 'grade', help = 'Jméno hodnosti' },
+ id = { name = 'id', help = 'ID hráče' },
+ job = { name = 'job', help = 'Jméno práce' },
+ grade = { name = 'grade', help = 'Jméno hodnosti' },
    },
   },
   gang = { help = 'Zkontroluj si gang' },
   setgang = {
    help = 'Nastav hráči gang (Pouze Admin)',
    params = {
-    id = { name = 'id', help = 'ID hráče' },
-    gang = { name = 'gang', help = 'Jméno gangu' },
-    grade = { name = 'grade', help = 'Pozice v gangu' },
+ id = { name = 'id', help = 'ID hráče' },
+ gang = { name = 'gang', help = 'Jméno gangu' },
+ grade = { name = 'grade', help = 'Pozice v gangu' },
    },
   },
   ooc = { help = 'OOC Chat' },
   me = {
    help = 'Ukaž zprávu',
    params = {
-    message = { name = 'message', help = 'Zpráva k odeslání' }
+ message = { name = 'message', help = 'Zpráva k odeslání' }
    },
   },
  },

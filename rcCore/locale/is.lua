@@ -39,80 +39,80 @@ local Translations = {
   tp = {
    help = 'TP Til leikmanns eða coords (Aðeins stjórnandi)',
    params = {
-    x = { name = 'id/x', help = 'ID af leikmanni eða X staða'},
-    y = { name = 'y', help = 'Y position'},
-    z = { name = 'z', help = 'Z position'},
+ x = { name = 'id/x', help = 'ID af leikmanni eða X staða'},
+ y = { name = 'y', help = 'Y position'},
+ z = { name = 'z', help = 'Z position'},
    },
   },
   tpm = { help = 'TP To Til Marker (Aðeins stjórnandi)' },
   togglepvp = { help = 'Toggle PVP on the server (Aðeins stjórnandi)' },
   addpermission = {
-   help = 'Give Player Permissions (God Only)',
+   help = 'Give player Permissions (God Only)',
    params = {
-    id = { name = 'id', help = 'ID of player' },
-    permission = { name = 'permission', help = 'Permission level' },
+ id = { name = 'id', help = 'ID of player' },
+ permission = { name = 'permission', help = 'Permission level' },
    },
   },
   removepermission = {
-   help = 'Remove Player Permissions (God Only)',
+   help = 'Remove player Permissions (God Only)',
    params = {
-    id = { name = 'id', help = 'ID of player' },
-    permission = { name = 'permission', help = 'Permission level' },
+ id = { name = 'id', help = 'ID of player' },
+ permission = { name = 'permission', help = 'Permission level' },
    },
   },
   openserver = { help = 'Open the server for everyone (Aðeins stjórnandi)' },
   closeserver = {
    help = 'Close the server for people without permissions (Aðeins stjórnandi)',
    params = {
-    reason = { name = 'reason', help = 'Reason for closing (optional)' },
+ reason = { name = 'reason', help = 'Reason for closing (optional)' },
    },
   },
   car = {
    help = 'Spawn Vehicle (Aðeins stjórnandi)',
    params = {
-    model = { name = 'model', help = 'Model name of the vehicle' },
+ model = { name = 'model', help = 'Model name of the vehicle' },
    },
   },
   dv = { help = 'Delete Vehicle (Aðeins stjórnandi)' },
   givemoney = {
    help = 'Gefðu spilara peninga (Aðeins stjórnandi)',
    params = {
-    id = { name = 'id', help = 'Leikmaður ID' },
-    moneytype = { name = 'moneytype', help = 'Tegund peninga (reiðufé, banki, dulritun)' },
-    amount = { name = 'amount', help = 'Magn peninga' },
+ id = { name = 'id', help = 'Leikmaður ID' },
+ moneytype = { name = 'moneytype', help = 'Tegund peninga (reiðufé, banki, dulritun)' },
+ amount = { name = 'amount', help = 'Magn peninga' },
    },
   },
   setmoney = {
    help = 'Stilltu peningaupphæð leikmanna (Aðeins stjórnandi)',
    params = {
-    id = { name = 'id', help = 'Leikmaður ID' },
-    moneytype = { name = 'moneytype', help = 'Tegund peninga (reiðufé, banki, dulritun)' },
-    amount = { name = 'amount', help = 'Magn peninga' },
+ id = { name = 'id', help = 'Leikmaður ID' },
+ moneytype = { name = 'moneytype', help = 'Tegund peninga (reiðufé, banki, dulritun)' },
+ amount = { name = 'amount', help = 'Magn peninga' },
    },
   },
   job = { help = 'Athugaðu starf þitt' },
   setjob = {
    help = 'Settu leikmannastarf (Aðeins stjórnandi)',
    params = {
-    id = { name = 'id', help = 'Leikmaður ID' },
-    job = { name = 'job', help = 'Nafn starfs' },
-    grade = { name = 'grade', help = 'Starfseinkunn' },
+ id = { name = 'id', help = 'Leikmaður ID' },
+ job = { name = 'job', help = 'Nafn starfs' },
+ grade = { name = 'grade', help = 'Starfseinkunn' },
    },
   },
   gang = { help = 'Athugaðu þinn Gang' },
   setgang = {
    help = 'Stilltu leikmann Gang (Aðeins stjórnandi)',
    params = {
-    id = { name = 'id', help = 'Leikmaður ID' },
-    gang = { name = 'gang', help = ' klíku nafn' },
-    grade = { name = 'grade', help = ' klíkustig' },
+ id = { name = 'id', help = 'Leikmaður ID' },
+ gang = { name = 'gang', help = ' klíku nafn' },
+ grade = { name = 'grade', help = ' klíkustig' },
    },
   },
   ooc = { help = 'OOC spjallskilaboð' },
   me = {
    help = 'Sýna staðbundin skilaboð',
    params = {
-    message = { name = 'message', help = 'Skilaboð til að senda' }
+ message = { name = 'message', help = 'Skilaboð til að senda' }
    },
   },
  },

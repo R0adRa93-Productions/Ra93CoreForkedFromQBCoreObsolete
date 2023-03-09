@@ -39,9 +39,9 @@ local Translations = {
   tp = {
    help = 'TP mängijale või koordinaatidele (ainult administraator)',
    params = {
-    x = { name = 'id/x', help = 'ID mängija või X positsioon'},
-    y = { name = 'y', help = 'Y positsioon'},
-    z = { name = 'z', help = 'Z positsioon'},
+ x = { name = 'id/x', help = 'ID mängija või X positsioon'},
+ y = { name = 'y', help = 'Y positsioon'},
+ z = { name = 'z', help = 'Z positsioon'},
    },
   },
   tpm = { help = 'TP Markerile (ainult administraator)' },
@@ -49,70 +49,70 @@ local Translations = {
   addpermission = {
    help = 'Andke mängijale õigused (ainult jumal)',
    params = {
-    id = { name = 'id', help = 'mängija ID' },
-    permission = { name = 'permission', help = 'Permission level' },
+ id = { name = 'id', help = 'mängija ID' },
+ permission = { name = 'permission', help = 'Permission level' },
    },
   },
   removepermission = {
    help = 'Eemaldage mängija õigused (ainult jumal)',
    params = {
-    id = { name = 'id', help = 'mängija ID' },
-    permission = { name = 'õigused', help = 'Õiguse tase' },
+ id = { name = 'id', help = 'mängija ID' },
+ permission = { name = 'õigused', help = 'Õiguse tase' },
    },
   },
   openserver = { help = 'Ava server kõigile (ainult administraator)' },
   closeserver = {
    help = 'Sulgege server ilma õigusteta inimeste jaoks (ainult administraator)',
    params = {
-    reason = { name = 'põhjus', help = 'Sulgemise põhjus (valikuline)' },
+ reason = { name = 'põhjus', help = 'Sulgemise põhjus (valikuline)' },
    },
   },
   car = {
    help = 'Sõiduki loomine (ainult administraator)',
    params = {
-    model = { name = 'mudel', help = 'Sõiduki mudeli nimi' },
+ model = { name = 'mudel', help = 'Sõiduki mudeli nimi' },
    },
   },
   dv = { help = 'Sõiduki kustutamine (ainult administraator)' },
   givemoney = {
    help = 'Mängija rahasumma määramine (ainult administraator)',
    params = {
-    id = { name = 'id', help = 'Mängija ID' },
-    moneytype = { name = 'rahatüüp', help = 'Raha liik (sularaha, pank, krüpto)' },
-    amount = { name = 'kogus', help = 'Rahasumma' },
+ id = { name = 'id', help = 'Mängija ID' },
+ moneytype = { name = 'rahatüüp', help = 'Raha liik (sularaha, pank, krüpto)' },
+ amount = { name = 'kogus', help = 'Rahasumma' },
    },
   },
   setmoney = {
    help = 'Mängija rahasumma määramine (ainult administraator)',
    params = {
-    id = { name = 'id', help = 'Mängija ID' },
-    moneytype = { name = 'rahatüüp', help = 'Raha liik (sularaha, pank, krüpto)' },
-    amount = { name = 'kogus', help = 'Rahasumma' },
+ id = { name = 'id', help = 'Mängija ID' },
+ moneytype = { name = 'rahatüüp', help = 'Raha liik (sularaha, pank, krüpto)' },
+ amount = { name = 'kogus', help = 'Rahasumma' },
    },
   },
   job = { help = 'Kontrollige oma töödkohta' },
   setjob = {
    help = 'Mängijale töökoha määramine (ainult administraator)',
    params = {
-    id = { name = 'id', help = 'Mängija ID' },
-    job = { name = 'töö', help = 'Töökoha nimi' },
-    grade = { name = 'tase', help = 'Tüükoha tase' },
+ id = { name = 'id', help = 'Mängija ID' },
+ job = { name = 'töö', help = 'Töökoha nimi' },
+ grade = { name = 'tase', help = 'Tüükoha tase' },
    },
   },
   gang = { help = 'Kontrollige oma grupeeringut' },
   setgang = {
    help = 'Määra mängija grupeeringu (ainult administraator)',
    params = {
-    id = { name = 'id', help = 'Player ID' },
-    gang = { name = 'tase', help = 'Grupeeringu nimi' },
-    grade = { name = 'tase', help = 'Grupeeringu tase' },
+ id = { name = 'id', help = 'Player ID' },
+ gang = { name = 'tase', help = 'Grupeeringu nimi' },
+ grade = { name = 'tase', help = 'Grupeeringu tase' },
    },
   },
   ooc = { help = 'OOC vestlussõnum' },
   me = {
    help = 'Kuva kohalikud sõnumid',
    params = {
-    message = { name = 'sõnum', help = 'Sõnum saatmiseks' }
+ message = { name = 'sõnum', help = 'Sõnum saatmiseks' }
    },
   },
  },

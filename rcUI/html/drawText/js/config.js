@@ -14,7 +14,7 @@ export const DEV_MODE = false;
  * @property {Record<string, NotiVariantData>} VariantDefinitions
  * @property {Record<string, any>} NotificationStyling
  **/
-export let NOTIFY_CONFIG = null;
+export let NOTIFY_Config = null;
 
 /**
  * Pure function taking a notification type and returning an object
@@ -23,7 +23,7 @@ export let NOTIFY_CONFIG = null;
  * @returns NotiVariantData
  **/
 export const determineStyleFromVariant = (variant) => {
-  const variantData = NOTIFY_CONFIG.VariantDefinitions[variant];
+  const variantData = NOTIFY_Config.VariantDefinitions[variant];
   if (!variantData)
  throw new Error(`Style of type: ${variant}, does not exist in the config`);
   return variantData;
@@ -31,7 +31,7 @@ export const determineStyleFromVariant = (variant) => {
 
 // Fetch and set NOTIFY_CONFIG from client script callback
 export const fetchNotifyConfig = async () => {
-  NOTIFY_CONFIG = await fetchNui("getNotifyConfig", {}, BrowserMockConfigData);
+  NOTIFY_Config = await fetchNui("getNotifyConfig", {}, BrowserMockConfigData);
   if (isEnvBrowser() || DEV_MODE) {
  console.log("Fetched Config:");
  console.dir(NOTIFY_CONFIG);
