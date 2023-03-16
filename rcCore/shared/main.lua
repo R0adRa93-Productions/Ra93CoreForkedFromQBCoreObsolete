@@ -1,19 +1,23 @@
 local stringCharset = {}
 local numberCharset = {}
+local maleNoGloves = {}
+local femaleNoGloves = {}
 
 for k = 0, 165 do
- Ra93Shared.maleNoGloves[k] = true
- Ra93Shared.femaleNoGloves[k] = true
+ if k >= 48 and k <= 57 then numberCharset[#numberCharset + 1] = string.char(k) end
+ if k >= 65 and k <= 90 then stringCharset[#stringCharset + 1] = string.char(k) end
+ if k >= 97 and k <= 122 then stringCharset[#stringCharset + 1] = string.char(k) end
+ maleNoGloves[k] = true
+ femaleNoGloves[k] = true
 end
-for i = 48, 57 do numberCharset[#numberCharset + 1] = string.char(i) end
-for i = 65, 90 do stringCharset[#stringCharset + 1] = string.char(i) end
-for i = 97, 122 do stringCharset[#stringCharset + 1] = string.char(i) end
 
 Ra93Shared = {
+ ["femaleNoGloves"] = femaleNoGloves,
  ["gangs"] = {},
  ["items"] = {},
  ["jobs"] = {},
  ["locations"] = {},
+ ["maleNoGloves"] = maleNoGloves,
  ["vehicles"] = {},
  ["weapons"] = {},
  ["randomStr"] = function(length)

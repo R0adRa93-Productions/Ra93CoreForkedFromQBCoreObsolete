@@ -12,10 +12,10 @@ Ra93Core.functions = {
   local idType = type(ids)
   if idType == "number" then
    if ids == -1 then
- for _, v in pairs(Ra93Core.players) do v.functions.addField(fieldName, data) end
+   for _, v in pairs(Ra93Core.players) do v.functions.addField(fieldName, data) end
    else
- if not Ra93Core.players[ids] then return end
- Ra93Core.players[ids].functions.addField(fieldName, data)
+    if not Ra93Core.players[ids] then return end
+    Ra93Core.players[ids].functions.addField(fieldName, data)
    end
   elseif idType == "table" and type(ids) == "array" then
    for i = 1, #ids do Ra93Core.functions.addPlayerField(ids[i], fieldName, data) end
@@ -25,10 +25,10 @@ Ra93Core.functions = {
   local idType = type(ids)
   if idType == "number" then
    if ids == -1 then
- for _, v in pairs(Ra93Core.players) do v.functions.addMethod(methodName, handler) end
+    for _, v in pairs(Ra93Core.players) do v.functions.addMethod(methodName, handler) end
    else
- if not Ra93Core.players[ids] then return end
- Ra93Core.players[ids].functions.addMethod(methodName, handler)
+    if not Ra93Core.players[ids] then return end
+    Ra93Core.players[ids].functions.addMethod(methodName, handler)
    end
   elseif idType == "table" and type(ids) == "array" then
    for i = 1, #ids do Ra93Core.functions.addPlayerMethod(ids[i], methodName, handler) end
@@ -41,36 +41,36 @@ Ra93Core.functions = {
   local isUnique = false
   local unique = {
    ["account"] = {
- ["func"] = function() return ("%s0%s%s%s%s"):format(Ra93Core.location.countryCode,math.random(1, 9),math.random(1111, 9999),math.random(1111, 9999),math.random(11, 99)) end,
- ["sql"] =  "JSON_VALUE(`playerData`, '$.charinfo.account')"
+    ["func"] = function() return ("%s0%s%s%s%s"):format(Ra93Core.location.countryCode,math.random(1, 9),math.random(1111, 9999),math.random(1111, 9999),math.random(11, 99)) end,
+    ["sql"] =  "JSON_VALUE(`playerData`, '$.charinfo.account')"
    },
    ["phone"] = {
- ["func"] = function()
-  local min = {
-   ["areaCode"] = tonumber(string.rep("1", Ra93Core.config.areaCodeDigits)),
-   ["exchange"] = tonumber(string.rep("1", Ra93Core.config.exchangeDigits)),
-   ["subscriber"] = tonumber(string.rep("1", Ra93Core.config.subscriberDigits))
-  }
-  local max = {
-   ["areaCode"] = tonumber(string.rep("9", Ra93Core.config.areaCodeDigits)),
-   ["exchange"] = tonumber(string.rep("9", Ra93Core.config.exchangeDigits)),
-   ["subscriber"] = tonumber(string.rep("9", Ra93Core.config.subscriberDigits))
-  }
-  return tonumber(("%s%s%s%s"):format(Ra93Core.config.countryCode, math.random(min.areaCode, max.areaCode), math.random(min.exchange, max.exchange), math.random(min.subscriber, max.subscriber)))
- end,
- ["sql"] =  "JSON_VALUE(`playerData`, '$.charinfo.phone')"
+    ["func"] = function()
+     local min = {
+      ["areaCode"] = tonumber(string.rep("1", Ra93Core.config.areaCodeDigits)),
+      ["exchange"] = tonumber(string.rep("1", Ra93Core.config.exchangeDigits)),
+      ["subscriber"] = tonumber(string.rep("1", Ra93Core.config.subscriberDigits))
+     }
+     local max = {
+      ["areaCode"] = tonumber(string.rep("9", Ra93Core.config.areaCodeDigits)),
+      ["exchange"] = tonumber(string.rep("9", Ra93Core.config.exchangeDigits)),
+      ["subscriber"] = tonumber(string.rep("9", Ra93Core.config.subscriberDigits))
+     }
+     return tonumber(("%s%s%s%s"):format(Ra93Core.config.countryCode, math.random(min.areaCode, max.areaCode), math.random(min.exchange, max.exchange), math.random(min.subscriber, max.subscriber)))
+    end,
+    ["sql"] =  "JSON_VALUE(`playerData`, '$.charinfo.phone')"
    },
    ["fingerprint"] = {
- ["func"] = function() return ("%s%d%s%d%s%d"):format(Ra93Core.shared.randomStr(2), Ra93Core.shared.randomInt(3), Ra93Core.shared.randomStr(1), Ra93Core.shared.randomInt(2), Ra93Core.shared.randomStr(3), Ra93Core.shared.randomInt(4)) end,
- ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.fingerprint')"
+    ["func"] = function() return ("%s%d%s%d%s%d"):format(Ra93Core.shared.randomStr(2), Ra93Core.shared.randomInt(3), Ra93Core.shared.randomStr(1), Ra93Core.shared.randomInt(2), Ra93Core.shared.randomStr(3), Ra93Core.shared.randomInt(4)) end,
+    ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.fingerprint')"
    },
    ["walletid"] = {
- ["func"] = function() return ("RCW-"):format(math.random(11111111, 99999999)) end,
- ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.walletid')"
+    ["func"] = function() return ("RCW-"):format(math.random(11111111, 99999999)) end,
+    ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.walletid')"
    },
    ["serialnumber"] = {
- ["func"] = function() return math.random(11111111, 99999999) end,
- ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.phonedata.serialnumber')"
+    ["func"] = function() return math.random(11111111, 99999999) end,
+    ["sql"] =  "JSON_VALUE(`playerData`, '$.metadata.phonedata.serialnumber')"
    }
   }
   while not isUnique do
@@ -162,7 +162,7 @@ Ra93Core.functions = {
   local curr_bucket_pool = {}
   if Ra93Core.playerBuckets and next(Ra93Core.playerBuckets) then
    for _, v in pairs(Ra93Core.playerBuckets) do
- if v.bucket == bucket then curr_bucket_pool[#curr_bucket_pool + 1] = v.id end
+    if v.bucket == bucket then curr_bucket_pool[#curr_bucket_pool + 1] = v.id end
    end
    return curr_bucket_pool
   else return false end
@@ -172,10 +172,10 @@ Ra93Core.functions = {
   local count = 0
   for src, player in pairs(Ra93Core.players) do
    if player.playerData.job.name == job then
- if player.playerData.job.onduty then
-  players[#players + 1] = src
-  count += 1
- end
+    if player.playerData.job.onduty then
+     players[#players + 1] = src
+     count += 1
+    end
    end
   end
   return players, count
@@ -184,7 +184,7 @@ Ra93Core.functions = {
   for src, _ in pairs(Ra93Core.players) do
    local idens = GetPlayerIdentifiers(src)
    for _, id in pairs(idens) do
- if identifier == id then return src end
+    if identifier == id then return src end
    end
   end
   return 0
@@ -197,9 +197,9 @@ Ra93Core.functions = {
  ["hasPermission"] = function(source, permission)
   if type(permission) == "string" then
    if IsPlayerAceAllowed(source, permission) then return true end
-  elseif type(permission) == "table" then
-   for _, permLevel in pairs(permission) do
- if IsPlayerAceAllowed(source, permLevel) then return true end
+   elseif type(permission) == "table" then
+    for _, permLevel in pairs(permission) do
+    if IsPlayerAceAllowed(source, permLevel) then return true end
    end
   end
   return false
@@ -209,7 +209,7 @@ Ra93Core.functions = {
   for _, player in pairs(players) do
    local identifiers = GetPlayerIdentifiers(player)
    for _, id in pairs(identifiers) do
- if string.find(id, "license") and id == license then return true end
+    if string.find(id, "license") and id == license then return true end
    end
   end
   return false
@@ -235,70 +235,19 @@ Ra93Core.functions = {
   if Ra93Core.functions.hasPermission(source, Ra93Core.config.server.whitelistPermission) then return true end
   return false
  end,
- ["kick"] = function(source, reason, setKickReason, deferrals)
-  reason = ("\n%s\n🔸 Check our Discord for further information: %s"):format(reason, Ra93Core.config.server.discord)
-  if setKickReason then setKickReason(reason) end
-  CreateThread(function()
-   if deferrals then
- deferrals.update(reason)
- Wait(2500)
-   end
-   if source then DropPlayer(source, reason) end
-   for _ = 0, 4 do
- while true do
-  if source then
-   if GetPlayerPing(source) >= 0 then break end
-   Wait(100)
-   CreateThread(function() DropPlayer(source, reason) end)
-  end
- end
- Wait(5000)
-   end
-  end)
- end,
  ["messageHandler"] = function(data)
-  local printColors = {
-   --[[ Color Notes
-    ["black"] = "^0",
-    ["red"] = "^1",
-    ["green"] = "^2",
-    ["yellow"] = "^3",
-    ["blue"] = "^4",
-    ["lightBlue"] = "^5",
-    ["purple"] = "^6",
-    ["white"] = "^7",
-    ["orange"] = "^8",
-    ["grey"] = "^9"
-   ]]--
-   ["error"] = {
-    ["console"] = "^1",
-    ["log"] = "red"
-   },
-   ["success"] = {
-    ["console"] = "^2",
-    ["log"] = "green"
-   },
-   ["notice"] = {
-    ["console"] = "^4",
-    ["log"] = "blue"
-   },
-   ["exploit"] = {
-    ["console"] = "^8",
-    ["log"] = "orange"
-   },
-  }
-  if not data.color then data.color = "default" end
-  if not data.banExpire then data.banExpire = 2147483647 end
-  if not data.resource then data.resource = "qbCore" end
+  data.color = data.color or "default"
+  data.banExpire = data.banExpire or 2147483647
+  data.resource = data.resource or "rcCore"
   local messageSystems = {
-   ["notify"] = function() TriggerClientEvent('QBCore:Notify', data.src, data.msg) end,
-   ["log"] = function() TriggerEvent('qb-log:server:CreateLog', data.logName, data.subject, QBConfig.PrintNotifyColors[data.color].log, data.msg) end,
+   ["notify"] = function() TriggerClientEvent('Ra93Core:Notify', data.src, data.msg) end,
+   ["log"] = function() TriggerEvent('rcLog:server:CreateLog', data.logName, data.subject, Ra93Config.notify.variantDefinitions[data.color].log, data.msg) end,
    ["console"] = function()
-    data.msg = ("%s%s"):format(Ra93Config.printNotifyColors[data.color], data.msg)
+    data.msg = ("%s%s"):format(Ra93Config.notify.variantDefinitions[data.color], data.msg)
     print(msg)
    end,
    ["kick"] = function() DropPlayer(data.src, data.msg) end,
-   ["ban"] = function() exports["qb-core"]:BanPlayer(data.src, data.msg, data.banExpire, data.logName) end
+   ["ban"] = function() Ra93Core.functions.banPlayer(data.src, data.msg, data.banExpire, data.logName) end
   }
   for k in pairs(data.sys) do messageSystems[k]() end
  end,
@@ -329,55 +278,100 @@ Ra93Core.functions = {
   while not DoesEntityExist(veh) do Wait(0) end
   if warp then
    while GetVehiclePedIsIn(ped) ~= veh do
- Wait(0)
- TaskWarpPedIntoVehicle(ped, veh, -1)
+    Wait(0)
+    TaskWarpPedIntoVehicle(ped, veh, -1)
    end
   end
   while NetworkGetEntityOwner(veh) ~= source do Wait(0) end
   return veh
  end,
- ["paycheckInterval"] = function()
+ ["payCheckInterval"] = function()
   if next(Ra93Core.players) then
    for _, player in pairs(Ra93Core.players) do
- if player then
-  local payment = player.playerData.job.payment
-  if not payment then payment = Config.jobs[player.playerData.job.name]["grades"][tostring(player.playerData.job.grade.level)].payment end
-  if player.playerData.job and payment > 0 and (Config.jobs[player.playerData.job.name].offDutyPay or player.playerData.job.onduty) then
-   if Ra93Core.config.money.PayCheckSociety then
- local account = exports["rcEconomy"]:getAccount(player.playerData.job.name)
- if account ~= 0 then
-  if account < payment then TriggerClientEvent("Ra93Core:notify", player.playerData.source, Lang:t("error.company_too_poor"), "error")
-  else
-   player.functions.addMoney("bank", payment)
-   exports["rcEconomy"]:removeMoney(player.playerData.job.name, payment)
-   TriggerClientEvent("Ra93Core:notify", player.playerData.source, Lang:t("info.received_paycheck", {value = payment}))
-  end
- else
-  player.functions.addMoney("bank", payment)
-  TriggerClientEvent("Ra93Core:notify", player.playerData.source, Lang:t("info.received_paycheck", {value = payment}))
- end
-   else
- player.functions.addMoney("bank", payment)
- TriggerClientEvent("Ra93Core:notify", player.playerData.source, Lang:t("info.received_paycheck", {value = payment}))
+    if player then
+     local payment = player.playerData.job.payment
+     if not payment then payment = Config.jobs[player.playerData.job.name]["grades"][tostring(player.playerData.job.grade.level)].payment end
+     if player.playerData.job and payment > 0 and (Config.jobs[player.playerData.job.name].offDutyPay or player.playerData.job.onduty) then
+      if Ra93Core.config.location.currency.payCheckSociety then
+       local account = exports["rcEconomy"]:getAccount(player.playerData.job.name)
+       if account ~= 0 then
+        if account < payment then
+         output.error = {
+          ["subject"] = Lang:t("error.company_too_poor"),
+          ["msg"] = Lang:t("error.company_too_poor"),
+          ["color"] = "error",
+          ["logName"] = "rcCore",
+          ["src"] = player.playerData.source,
+          ["sys"] = {
+           ["log"] = true,
+           ["notify"] = true
+          }
+         }
+         Ra93Core.functions.messageHandler(output.error)
+        else
+         player.functions.addMoney("bank", payment)
+         exports["rcEconomy"]:removeMoney(player.playerData.job.name, payment)
+         output.notify = {
+          ["subject"] = Lang:t("info.received_paycheck", {value = payment}),
+          ["msg"] = Lang:t("info.received_paycheck", {value = payment}),
+          ["color"] = "notify",
+          ["logName"] = "rcCore",
+          ["src"] = player.playerData.source,
+          ["sys"] = {
+           ["log"] = true,
+           ["notify"] = true
+          }
+         }
+         Ra93Core.functions.messageHandler(output.notify)
+        end
+       else
+        player.functions.addMoney("bank", payment)
+        output.notify = {
+         ["subject"] = Lang:t("info.received_paycheck", {value = payment}),
+         ["msg"] = Lang:t("info.received_paycheck", {value = payment}),
+         ["color"] = "notify",
+         ["logName"] = "rcCore",
+         ["src"] = player.playerData.source,
+         ["sys"] = {
+          ["log"] = true,
+          ["notify"] = true
+         }
+        }
+        Ra93Core.functions.messageHandler(output.notify)
+       end
+      else
+       player.functions.addMoney("bank", payment)
+       output.notify = {
+        ["subject"] = Lang:t("info.received_paycheck", {value = payment}),
+        ["msg"] = Lang:t("info.received_paycheck", {value = payment}),
+        ["color"] = "notify",
+        ["logName"] = "rcCore",
+        ["src"] = player.playerData.source,
+        ["sys"] = {
+         ["log"] = true,
+         ["notify"] = true
+        }
+       }
+       Ra93Core.functions.messageHandler(output.notify)
+      end
+     end
+    end
    end
   end
- end
-   end
-  end
-  SetTimeout(Ra93Core.config.money.payCheckTimeOut * (60 * 1000), PaycheckInterval)
+  SetTimeout(Ra93Core.config.location.currency.payCheckTimeOut * (60 * 1000), Ra93Core.functions.payCheckInterval)
  end,
  ["removePermission"] = function(source, permission)
   if permission then
    if IsPlayerAceAllowed(source, permission) then
- ExecuteCommand(("remove_principal player.%s Ra93Core.%s"):format(source, permission))
- Ra93Core.commands.refresh(source)
+    ExecuteCommand(("remove_principal player.%s Ra93Core.%s"):format(source, permission))
+    Ra93Core.commands.refresh(source)
    end
   else
    for _, v in pairs(Ra93Core.config.server.permissions) do
- if IsPlayerAceAllowed(source, v) then
-  ExecuteCommand(("remove_principal player.%s Ra93Core.%s"):format(source, v))
-  Ra93Core.commands.refresh(source)
- end
+    if IsPlayerAceAllowed(source, v) then
+     ExecuteCommand(("remove_principal player.%s Ra93Core.%s"):format(source, v))
+     Ra93Core.commands.refresh(source)
+    end
    end
   end
  end,

@@ -1,6 +1,6 @@
 Ra93Core = {
- ["config"] = config,
- ["shared"] = Ra93Shared,
+ ["config"] = Config or {},
+ ["shared"] = Ra93Shared or {},
  ["server"] = {},
  ["clientCallBacks"] = {},
  ["serverCallbacks"] = {}

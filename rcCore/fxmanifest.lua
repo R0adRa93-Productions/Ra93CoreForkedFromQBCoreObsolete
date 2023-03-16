@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 description 'Ra93Core Core'
-version '0.0.001'
+version '0.0.002'
 shared_scripts {
  'config.lua',
  'shared/locale.lua',
