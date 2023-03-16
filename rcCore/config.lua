@@ -1,6 +1,6 @@
 Config = {
  ["enforceDefaultDuty"] = true,
- ["maxPlayers"] = GetConvarInt('sv_maxclients', 48), -- Gets max players from config file, default 48
+ ["maxPlayers"] = GetConvarInt("sv_maxclients", 48), -- Gets max players from config file, default 48
  ["defaultSpawn"] = vector4(-1035.71, -2731.87, 12.86, 0.0),
  ["updateInterval"] = 5, -- how often to update player data in minutes
  ["statusInterval"] = 5000, -- how often to check hunger/thirst status in milliseconds
@@ -19,15 +19,15 @@ Config = {
   }
  },
  ["server"] = {
-  ["closed"] = false, -- Set server closed (no one can join except people with ace permission 'qbadmin.join')
-  ["closedReason"] = "Server Closed", -- Reason message to display when people can't join the server
+  ["closed"] = false, -- Set server closed (no one can join except people with ace permission "qbadmin.join")
+  ["closedReason"] = "Server Closed", -- Reason message to display when people can not join the server
   ["uptime"] = 0, -- Time the server has been up.
   ["whitelist"] = false, -- Enable or disable whitelist on the server
-  ["whitelistPermission"] = 'admin', -- Permission that's able to enter the server when the whitelist is on
+  ["whitelistPermission"] = "admin", -- Permission that is able to enter the server when the whitelist is on
   ["pvp"] = true, -- Enable or disable pvp on the server (Ability to shoot other players)
   ["discord"] = "", -- Discord invite link
   ["checkDuplicateLicense"] = true, -- Check for duplicate rockstar license on join
-  ["permissions"] = { 'god', 'admin', 'mod' }, -- Add as many groups as you want here after creating them in your server.cfg
+  ["permissions"] = { "god", "admin", "mod" }, -- Add as many groups as you want here after creating them in your server.cfg
  },
  ["notify"] = {
   ["notificationStyling"] = {
@@ -38,33 +38,57 @@ Config = {
   -- These are how you define different notification variants
   -- The "color" key is background of the notification
   -- The "icon" key is the css-icon code, this project uses `Material Icons` & `Font Awesome`
+  --[[ Color Notes
+   ["black"] = "^0",
+   ["red"] = "^1",
+   ["green"] = "^2",
+   ["yellow"] = "^3",
+   ["blue"] = "^4",
+   ["lightBlue"] = "^5",
+   ["purple"] = "^6",
+   ["white"] = "^7",
+   ["orange"] = "^8",
+   ["grey"] = "^9"
+  ]]--
   ["variantDefinitions"] = {
    ["success"] = {
-    ["classes"] = 'success',
-    ["icon"] = 'done'
+    ["classes"] = "success",
+    ["icon"] = "done",
+    ["console"] = "^2",
+    ["log"] = "green"
    },
-   ["primary"] = {
-    ["classes"] = 'primary',
-    ["icon"] = 'info'
+   ["notify"] = {
+    ["classes"] = "notify",
+    ["icon"] = "info",
+    ["console"] = "^4",
+    ["log"] = "blue"
    },
    ["error"] = {
-    ["classes"] = 'error',
-    ["icon"] = 'dangerous'
+    ["classes"] = "error",
+    ["icon"] = "dangerous",
+    ["console"] = "^1",
+    ["log"] = "red"
+   },
+   ["exploit"] = {
+    ["classes"] = "error",
+    ["icon"] = "bolt",
+    ["console"] = "^8",
+    ["log"] = "orange"
    },
    ["police"] = {
-    ["classes"] = 'police',
-    ["icon"] = 'local_police'
+    ["classes"] = "police",
+    ["icon"] = "local_police"
    },
    ["ambulance"] = {
-    ["classes"] = 'ambulance',
-    ["icon"] = 'fas fa-ambulance'
+    ["classes"] = "ambulance",
+    ["icon"] = "fas fa-ambulance"
    }
   }
  },
  ["newPlayerLicenses"] = {
   ["driver"] = true,
-  ['business'] = false,
-  ['weapon'] = false
+  ["business"] = false,
+  ["weapon"] = false
  },
  ["location"] = {
   ["countryCode"] = "US",

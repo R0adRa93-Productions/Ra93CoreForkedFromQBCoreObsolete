@@ -1,13 +1,13 @@
 RegisterNetEvent('Ra93Core:client:onPlayerLoaded', function()
  ShutdownLoadingScreenNui()
- Localplayer.state:set('isLoggedIn', true, false)
+ LocalPlayer.state:set('isLoggedIn', true, false)
  if not Config.server.pvp then return end
  SetCanAttackFriendly(PlayerPedId(), true, false)
  NetworkSetFriendlyFireOption(true)
 end)
 
 RegisterNetEvent('Ra93Core:client:onPlayerUnload', function()
- Localplayer.state:set('isLoggedIn', false, false)
+ LocalPlayer.state:set('isLoggedIn', false, false)
 end)
 
 RegisterNetEvent('Ra93Core:client:pvpHasToggled', function(pvp_state)
@@ -187,12 +187,8 @@ RegisterNetEvent('Ra93Core:command:showMe3D', function(senderId, msg)
  end)
 end)
 
-RegisterNetEvent('Ra93Core:client:onSharedUpdate', function(tableName, key, value)
- Ra93Core.shared[tableName][key] = value
- TriggerEvent('Ra93Core:client:updateObject')
-end)
-
-RegisterNetEvent('Ra93Core:client:onSharedUpdateMultiple', function(tableName, values)
- for key, value in pairs(values) do Ra93Core.shared[tableName][key] = value end
+RegisterNetEvent('Ra93Core:client:onSharedUpdate', function(shared, type)
+ Ra93Core.shared[("%ss"):format(type)] = nil
+ Ra93Core.shared[("%ss"):format(type)] = shared
  TriggerEvent('Ra93Core:client:updateObject')
 end)

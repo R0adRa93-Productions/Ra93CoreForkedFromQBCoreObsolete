@@ -41,8 +41,7 @@ end
 function Locale:t(key, subs)
  local phrase, result
  subs = subs or {}
- if type(self.phrases[key]) == "string" then
-  phrase = self.phrases[key]
+ if type(self.phrases[key]) == "string" then phrase = self.phrases[key]
  else
   if self["warnOnMissing"] then print(("^3Warning: Missing phrase for key: "%s""):format(key)) end
   if self["fallback"] then return self["fallback"]:t(key, subs) end

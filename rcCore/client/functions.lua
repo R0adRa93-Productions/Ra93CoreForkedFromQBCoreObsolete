@@ -2,9 +2,7 @@ RegisterNUICallback("getNotifyConfig", function(_, cb)
  cb(Ra93Core.config.notify)
 end)
 
-Ra93Core.client.debug = function(resource, obj, depth)
- TriggerServerEvent("Ra93Core:debugSomething", obj, depth, resource)
-end
+Ra93Core.client.debug = function(resource, obj, depth) TriggerServerEvent("Ra93Core:debugSomething", obj, depth, resource) end
 
 Ra93Core.functions = {
  ["attachProp"] = function(ped, model, boneId, x, y, z, xR, yR, zR, vertex)
@@ -378,6 +376,9 @@ Ra93Core.functions = {
   if HasNamedPtfxAssetLoaded(dictionary) then return end
   RequestNamedPtfxAsset(dictionary)
   while not HasNamedPtfxAssetLoaded(dictionary) do Wait(0) end
+ end,
+ ["messageHandler"] = function(error)
+  TriggerServerEvent("Ra93Core:server:messageHandler", error)
  end,
  ["notify"] = function(text, textType, length)
   if type(text) == "table" then

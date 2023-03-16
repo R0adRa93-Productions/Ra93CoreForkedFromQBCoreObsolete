@@ -87,7 +87,7 @@ AddEventHandler("chatMessage", function(_, _, message)
 end)
 
 AddEventHandler("playerDropped", function(reason)
- if GetResourceState(GetInvokingResource()) ~= "started" then return false end
+ -- need to figure out another way to ensure security on this one.
  local src = source
  if not Ra93Core.players[src] then return end
  local player = Ra93Core.players[src]
@@ -102,21 +102,59 @@ AddEventHandler("playerConnecting", onPlayerConnecting)
 RegisterNetEvent("Ra93Core:server:closeServer", function(reason)
  if GetResourceState(GetInvokingResource()) ~= "started" then return false end
  local src = source
- if Ra93Core.functions.hasPermission(src, "admin") then
-  reason = reason or "No reason specified"
-  Ra93Core.config.server.closed = true
-  Ra93Core.config.server.closedReason = reason
-  for k in pairs(Ra93Core.players) do
-   if not Ra93Core.functions.hasPermission(k, Ra93Core.config.server.whitelistPermission) then Ra93Core.functions.kick(k, reason, nil, nil) end
+ if not Ra93Core.functions.hasPermission(src, "admin") then
+  output.error = {
+   ["subject"] = Lang:t("error.no_permission"),
+   ["msg"] = Lang:t("error.no_permission"),
+   ["color"] = "error",
+   ["logName"] = "rcCore",
+   ["src"] = player.playerData.source,
+   ["sys"] = {
+    ["log"] = true,
+    ["kick"] = true
+   }
+  }
+  Ra93Core.functions.messageHandler(output.error)
+ end
+ reason = reason or "No reason specified"
+ Ra93Core.config.server.closed = true
+ Ra93Core.config.server.closedReason = reason
+ for k in pairs(Ra93Core.players) do
+  if not Ra93Core.functions.hasPermission(k, Ra93Core.config.server.whitelistPermission) then
+   output.error = {
+    ["subject"] = reason,
+    ["msg"] = reason,
+    ["color"] = "error",
+    ["logName"] = "rcCore",
+    ["src"] = player.playerData.source,
+    ["sys"] = {
+     ["log"] = true,
+     ["kick"] = true
+    }
+   }
+   Ra93Core.functions.messageHandler(output.error)
   end
- else Ra93Core.functions.kick(src, Lang:t("error.no_permission"), nil, nil) end
+ end
 end)
 
 RegisterNetEvent("Ra93Core:server:openServer", function()
  if GetResourceState(GetInvokingResource()) ~= "started" then return false end
  local src = source
  if Ra93Core.functions.hasPermission(src, "admin") then Ra93Core.config.server.closed = false
- else Ra93Core.functions.kick(src, Lang:t("error.no_permission"), nil, nil) end
+ else
+  output.error = {
+   ["subject"] = Lang:t("error.no_permission"),
+   ["msg"] = Lang:t("error.no_permission"),
+   ["color"] = "error",
+   ["logName"] = "rcCore",
+   ["src"] = player.playerData.source,
+   ["sys"] = {
+    ["log"] = true,
+    ["kick"] = true
+   }
+  }
+  Ra93Core.functions.messageHandler(output.error)
+ end
 end)
 
 RegisterNetEvent("Ra93Core:server:triggerClientCallback", function(name, ...)
@@ -155,10 +193,32 @@ RegisterNetEvent("Ra93Core:toggleDuty", function()
  if not player then return end
  if player.playerData.job.onduty then
   player.functions.setJobDuty(false)
-  TriggerClientEvent("Ra93Core:notify", src, Lang:t("info.off_duty"))
+  output.notify = {
+   ["subject"] = Lang:t("info.off_duty"),
+   ["msg"] = Lang:t("info.off_duty"),
+   ["color"] = "notify",
+   ["logName"] = "rcCore",
+   ["src"] = source,
+   ["sys"] = {
+    ["log"] = true,
+    ["notify"] = true
+   }
+  }
+  Ra93Core.functions.messageHandler(output.notify)
  else
   player.functions.setJobDuty(true)
-  TriggerClientEvent("Ra93Core:notify", src, Lang:t("info.on_duty"))
+  output.notify = {
+   ["subject"] = Lang:t("info.on_duty"),
+   ["msg"] = Lang:t("info.on_duty"),
+   ["color"] = "notify",
+   ["logName"] = "rcCore",
+   ["src"] = source,
+   ["sys"] = {
+    ["log"] = true,
+    ["notify"] = true
+   }
+  }
+  Ra93Core.functions.messageHandler(output.notify)
  end
  TriggerClientEvent("Ra93Core:client:setDuty", src, player.playerData.job.onduty)
 end)
@@ -171,9 +231,34 @@ RegisterNetEvent("Ra93Core:callCommand", function(command, args)
  if not player then return end
  local hasPerm = Ra93Core.functions.hasPermission(src, "command."..Ra93Core.commands.list[command].name)
  if hasPerm then
-  if Ra93Core.commands.list[command].argsrequired and #Ra93Core.commands.list[command].arguments ~= 0 and not args[#Ra93Core.commands.list[command].arguments] then TriggerClientEvent("Ra93Core:notify", src, Lang:t("error.missing_args2"), "error")
+  if Ra93Core.commands.list[command].argsrequired and #Ra93Core.commands.list[command].arguments ~= 0 and not args[#Ra93Core.commands.list[command].arguments] then
+   output.error = {
+    ["subject"] = Lang:t("error.missing_args2"),
+    ["msg"] = Lang:t("error.missing_args2"),
+    ["color"] = "error",
+    ["logName"] = "rcCore",
+    ["src"] = source,
+    ["sys"] = {
+     ["log"] = true,
+     ["notify"] = true
+    }
+   }
+   Ra93Core.functions.messageHandler(output.error)
   else Ra93Core.commands.list[command].callback(src, args) end
- else TriggerClientEvent("Ra93Core:notify", src, Lang:t("error.no_access"), "error") end
+ else
+  output.error = {
+   ["subject"] = Lang:t("error.no_access"),
+   ["msg"] = Lang:t("error.no_access"),
+   ["color"] = "error",
+   ["logName"] = "rcCore",
+   ["src"] = source,
+   ["sys"] = {
+    ["log"] = true,
+    ["notify"] = true
+   }
+  }
+  Ra93Core.functions.messageHandler(output.error)
+ end
 end)
 
 RegisterServerEvent("Ra93Core:server:messageHandler", function(error)
@@ -182,7 +267,7 @@ RegisterServerEvent("Ra93Core:server:messageHandler", function(error)
 end)
 
 RegisterServerEvent("baseevents:enteringVehicle", function(veh,seat,modelName)
- if GetResourceState(GetInvokingResource()) ~= "started" then return false end
+-- Need to figure out a way to secure the baseevents
  local src = source
  local data = {
   vehicle = veh,
@@ -194,7 +279,7 @@ RegisterServerEvent("baseevents:enteringVehicle", function(veh,seat,modelName)
 end)
 
 RegisterServerEvent("baseevents:enteredVehicle", function(veh,seat,modelName)
- if GetResourceState(GetInvokingResource()) ~= "started" then return false end
+-- Need to figure out a way to secure the baseevents
  local src = source
  local data = {
   vehicle = veh,
@@ -206,13 +291,13 @@ RegisterServerEvent("baseevents:enteredVehicle", function(veh,seat,modelName)
 end)
 
 RegisterServerEvent("baseevents:enteringAborted", function()
- if GetResourceState(GetInvokingResource()) ~= "started" then return false end
+-- Need to figure out a way to secure the baseevents
  local src = source
  TriggerClientEvent("Ra93Core:client:abortVehicleEntering", src)
 end)
 
 RegisterServerEvent("baseevents:leftVehicle", function(veh,seat,modelName)
- if GetResourceState(GetInvokingResource()) ~= "started" then return false end
+-- Need to figure out a way to secure the baseevents
  local src = source
  local data = {
   vehicle = veh,
