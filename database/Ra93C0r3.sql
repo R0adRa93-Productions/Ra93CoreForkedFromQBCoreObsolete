@@ -2188,7 +2188,7 @@ INSERT INTO `pedcategory` (`pedCategoryID`, `label`) VALUES
 	(3, 'Cutscene'),
 	(4, 'Gang'),
 	(5, 'Multiplayer'),
- (6, 'Other')
+ (6, 'Other'),
 	(7, 'Scenario'),
 	(8, 'Story'),
 	(9, 'Story Scenario');
